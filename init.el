@@ -8,6 +8,17 @@
 (menu-bar-mode -1)                  ; Disable menubar
 (set-fringe-mode '(10 . 10))        ; Set left and right margin in pixels
 
+;; Enable line numbers
+(column-number-mode)
+(global-display-line-numbers-mode t)
+(setq display-line-numbers 'relative)
+;; Disable line numners for some modes
+(dolist (mode '(org-mode-hook
+				term-mode-hook
+				shell-mode-hook))
+  (add-hook mode (lambda () (display-line-numbers-mode 0))))
+
+
 ;; Load font
 (set-face-attribute 'default nil :font "SauceCodePro Nerd Font" :height 120)
 
@@ -45,20 +56,36 @@
   (vertico-mode)
 
   ;; Different scroll margin
-  ;; (setq vertico-scroll-margin 0)
+  ; (setq vertico-scroll-margin 0)
 
   ;; Show more candidates
-  ;; (setq vertico-count 20)
+  ; (setq vertico-count 20)
 
   ;; Grow and shrink the Vertico minibuffer
-  ;; (setq vertico-resize t)
+  ; (setq vertico-resize t)
 
   ;; Optionally enable cycling for `vertico-next' and `vertico-previous'.
-  ;; (setq vertico-cycle t)
+  ; (setq vertico-cycle t)
   )
 
 ;; Persist history over Emacs restarts. Vertico sorts by history position.
 (use-package savehist
-  :init
-  (savehist-mode))
+  :straight t
+  :init (savehist-mode))
 
+;; Doom Modeline
+(use-package doom-modeline
+  :straight t
+  :init (doom-modeline-mode 1))
+
+;; Rainbow delimiter
+(use-package rainbow-delimiters
+  :straight t
+  :hook (prog-mode . rainbow-delimiters-mode))
+
+;; Which key
+(use-package which-key
+  :straight t
+  :init (which-key-mode)
+  :config
+  (setq which-key-idle-delay 0.3))
