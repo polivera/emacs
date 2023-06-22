@@ -23,7 +23,7 @@
 (set-face-attribute 'default nil :font "SauceCodePro Nerd Font" :height 120)
 
 ;; Set theme
-(load-theme 'misterioso)
+;;(load-theme 'misterioso)
 
 ;; Basic editor config
 (setq-default tab-width 4):
@@ -77,6 +77,11 @@
   :straight t
   :init (savehist-mode))
 
+;; Consult (telescope like?)
+(use-package consult
+  :straight t
+  :hook (completion-list-mode . consult-preview-at-point-mode))
+
 ;; Doom Modeline
 (use-package doom-modeline
   :straight t
@@ -94,3 +99,12 @@
   :config
   (setq which-key-idle-delay 0.1))
 
+;; TODO: Check the plugin 'helpful
+
+;; Insatll Catppuccin theme
+(use-package catppuccin-theme
+  :straight t
+  :config
+  (setq catppuccin-flavor 'mocha)
+  :init
+  (load-theme 'catppuccin t))
