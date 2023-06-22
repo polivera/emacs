@@ -11,7 +11,7 @@
 ;; Enable line numbers
 (column-number-mode)
 (global-display-line-numbers-mode t)
-(setq display-line-numbers 'relative)
+(setq display-line-numbers-type 'relative)
 ;; Disable line numners for some modes
 (dolist (mode '(org-mode-hook
 				term-mode-hook
@@ -50,8 +50,12 @@
 ;; Enable vertico
 ;; @see: https://github.com/minad/vertico
 (use-package vertico
-  :ensure t
-	     
+  :straight t
+  ;; Fix this ------
+  :bind (:map vertico-map
+			  ("C-j" . vertico-next)
+			  ("C-k" . vertico-previous)
+			  ("C-q" . vertico-exit))
   :init
   (vertico-mode)
 
@@ -88,4 +92,5 @@
   :straight t
   :init (which-key-mode)
   :config
-  (setq which-key-idle-delay 0.3))
+  (setq which-key-idle-delay 0.1))
+
