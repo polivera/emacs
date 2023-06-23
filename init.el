@@ -100,7 +100,6 @@
   (setq which-key-idle-delay 0.3))
 
 ;; TODO: Check the plugin 'helpful
-
 ;; Insatll Catppuccin theme
 (use-package catppuccin-theme
   :straight t
@@ -114,6 +113,12 @@
 (use-package all-the-icons
   :straight t
   :if (display-graphic-p))
+
+;; Install Nerd Icons as well
+;; After install this you shoud run nerd-icons-install-fonts
+;; Also you shoud renew the font cache `fc-cache -f -v`
+(use-package nerd-icons
+  :straight t)
 
 ;; Keybinding helper plugin
 (use-package general
@@ -147,8 +152,6 @@
   (define-key evil-insert-state-map (kbd "C-g") 'evil-normal-state)
   (define-key evil-insert-state-map (kbd "C-h") 'evil-delete-backward-char-and-join)
 
-  (define-key evil-normal-state-map "cs" 'evil-invert-case)
-
   (evil-global-set-key 'motion "j" 'evil-next-visual-line)
   (evil-global-set-key 'motion "k" 'evil-previous-visual-line)
   )
@@ -175,6 +178,3 @@
 ;; todo: see if we can group all which-key somehow
 (poli/leader-keys
   "ts" '(hydra-text-scale/body :which-key "scale text"))
-
-
-fwjslkjfasifdjlk
