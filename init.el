@@ -97,7 +97,7 @@
   :straight t
   :init (which-key-mode)
   :config
-  (setq which-key-idle-delay 0.1))
+  (setq which-key-idle-delay 0.3))
 
 ;; TODO: Check the plugin 'helpful
 
@@ -121,25 +121,15 @@
   :config
   (general-create-definer poli/leader-keys
 						  :keymaps '(normal insert visual emacs)
+						  ;; This will be used as a leader in all modes but insert
 						  :prefix "SPC"
+						  ;; This will be used as a leader key when on insert mode
 						  :global-prefix "C-SPC")
   (poli/leader-keys
    "t"  '(:ignore t :which-key "toggles")
-   "tt" '(consult-theme :which-key "choose theme")))
-
-;; Set a list to ignore evil mode in the following modes
-;; TODO: Check this modes
-(defun poli/evil-hook ()
-  (dolist (mode '(custom-mode
-				  eshell-mode
-				  git-rebase-mode
-				  erc-mode
-				  circe-server-mode
-				  circe-chat-mode
-				  circe-query-mode
-				  sauron-mode
-				  term-mode))
-	(add-to-list 'evil-emacs-state-modes mode)))
+   "tt" '(consult-theme :which-key "choose theme")
+   "w" '(save-buffer :which-key "save buffer")
+   ))
 
 ;; Install vim keybindings ) VI emulator layer
 (use-package evil
@@ -149,11 +139,42 @@
   ;; TODO: Learn what this does
   (setq evil-want-integration t)
   ;; Integration with other modes deactivate becase another package is used for that
-  (setq evil-want-keybindings nil)
+  (setq evil-want-keybinding nil)
   ;; Make it so C-u scroll instead of emacs default behaviour
   (setq evil-want-C-u-scroll t)
-  :hook (evil-mode . poli/evil-hook)
+  (evil-mode 1)
   :config
-  (evil-mode 1))
-  
+  (define-key evil-insert-state-map (kbd "C-g") 'evil-normal-state)
+  (define-key evil-insert-state-map (kbd "C-h") 'evil-delete-backward-char-and-join)
 
+  (define-key evil-normal-state-map "cs" 'evil-invert-case)
+
+  (evil-global-set-key 'motion "j" 'evil-next-visual-line)
+  (evil-global-set-key 'motion "k" 'evil-previous-visual-line)
+  )
+  
+(use-package evil-collection
+  :straight t
+  :after evil
+  :init
+  (evil-collection-init))
+
+;; Hydra package
+;; This let you do keybindings that normally require a combination to do it without
+;; that combination
+(use-package hydra
+  :straight t)
+
+(defhydra hydra-text-scale (:timeout 4)
+  "scale text"
+  ("j" text-scale-increase "in")
+  ("k" text-scale-decrease "out")
+  ("r" (text-scale-set 0) "reset")
+  ("f" nil "finish" :exit t))
+
+;; todo: see if we can group all which-key somehow
+(poli/leader-keys
+  "ts" '(hydra-text-scale/body :which-key "scale text"))
+
+
+fwjslkjfasifdjlk
