@@ -108,3 +108,52 @@
   (setq catppuccin-flavor 'mocha)
   :init
   (load-theme 'catppuccin t))
+
+;; All the icons
+;; After install this you should run all-the-icons-install-fonts
+(use-package all-the-icons
+  :straight t
+  :if (display-graphic-p))
+
+;; Keybinding helper plugin
+(use-package general
+  :straight t
+  :config
+  (general-create-definer poli/leader-keys
+						  :keymaps '(normal insert visual emacs)
+						  :prefix "SPC"
+						  :global-prefix "C-SPC")
+  (poli/leader-keys
+   "t"  '(:ignore t :which-key "toggles")
+   "tt" '(consult-theme :which-key "choose theme")))
+
+;; Set a list to ignore evil mode in the following modes
+;; TODO: Check this modes
+(defun poli/evil-hook ()
+  (dolist (mode '(custom-mode
+				  eshell-mode
+				  git-rebase-mode
+				  erc-mode
+				  circe-server-mode
+				  circe-chat-mode
+				  circe-query-mode
+				  sauron-mode
+				  term-mode))
+	(add-to-list 'evil-emacs-state-modes mode)))
+
+;; Install vim keybindings ) VI emulator layer
+(use-package evil
+  :straight t
+  :init
+  ;; I don't know what this does but should be set to true
+  ;; TODO: Learn what this does
+  (setq evil-want-integration t)
+  ;; Integration with other modes deactivate becase another package is used for that
+  (setq evil-want-keybindings nil)
+  ;; Make it so C-u scroll instead of emacs default behaviour
+  (setq evil-want-C-u-scroll t)
+  :hook (evil-mode . poli/evil-hook)
+  :config
+  (evil-mode 1))
+  
+
