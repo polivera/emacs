@@ -97,7 +97,7 @@
   :straight t
   :init (which-key-mode)
   :config
-  (setq which-key-idle-delay 0.3))
+  (setq which-key-idle-delay 0.2))
 
 ;; TODO: Check the plugin 'helpful
 ;; Insatll Catppuccin theme
@@ -173,8 +173,24 @@
   ("j" text-scale-increase "in")
   ("k" text-scale-decrease "out")
   ("r" (text-scale-set 0) "reset")
-  ("f" nil "finish" :exit t))
+  ("q" nil "finish" :exit t))
 
 ;; todo: see if we can group all which-key somehow
 (poli/leader-keys
   "ts" '(hydra-text-scale/body :which-key "scale text"))
+
+;; Projectile
+;; This package give the ability to identify files that constitute a project
+;; Like package.json in a node project or a composer.json in a php project
+(use-package projectile
+  :straight t
+  :init
+  (projectile-mode)
+  :config
+  (when (file-directory-p "~/Projects")
+	(setq projectile-project-search-path '(("~/Projects" . 3))))
+  ;; This will show the directory structure when you switch project
+  (setq projectile-switch-project-action #'projectile-dired))
+
+(poli/leader-keys
+  "p" '(projectile-command-map :which-key "Projectile"))
