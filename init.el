@@ -194,3 +194,8 @@
 
 (poli/leader-keys
   "p" '(projectile-command-map :which-key "Projectile"))
+
+(use-package magit
+  :straight t
+  :custom
+  (magit-display-buffer-function 'magit-display-buffer-same-window-except-diff-v1))
