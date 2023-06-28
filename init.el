@@ -77,7 +77,10 @@
   :straight t
   :init (savehist-mode))
 
-;; Consult (telescope like?)
+;; Consult (grep rg ripgrep)
+;; TODO:
+;; - ripgrep in non-gitignore files
+;; - find-files non-gitignore but hidden files
 (use-package consult
   :straight t
   :hook (completion-list-mode . consult-preview-at-point-mode))
@@ -195,7 +198,20 @@
 (poli/leader-keys
   "p" '(projectile-command-map :which-key "Projectile"))
 
+;; Magit (THE git plugin)
+;; TODO: gpg password input not working
+;; TODO: investigate resolve conflicts in magit BEFORE it start using it
 (use-package magit
   :straight t
   :custom
   (magit-display-buffer-function 'magit-display-buffer-same-window-except-diff-v1))
+
+;; Install Forge
+;; Force is used to interact with github either for task or PRs
+(use-package forge
+  :straight t
+  :after magit)
+
+;; Org Mode
+(use-package org
+  :straight t)
