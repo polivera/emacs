@@ -16,15 +16,17 @@
 ;; Disable line numners for some modes
 (dolist (mode '(org-mode-hook
 				term-mode-hook
+				dired-mode-hook
 				shell-mode-hook))
   (add-hook mode (lambda () (display-line-numbers-mode 0))))
 
 
 ;; Load font
 ;; To change fonts and stuff depending on the os check function 'system-type'
-;; Instead of 'default you can also do 'fixed-pitch and 'variable-pitch so set
 ;; monospaced or regular fonts
 (set-face-attribute 'default nil :font "SauceCodePro Nerd Font" :height 120)
+(set-face-attribute 'fixed-pitch nil :font "SauceCodePro Nerd Font" :height 120)
+(set-face-attribute 'variable-pitch nil :font "Comfortaa" :height 120)
 
 
 ;; Set theme
@@ -214,18 +216,30 @@
 
 ;; Install Forge
 ;; Force is used to interact with github either for task or PRs
+;; You should set your github token for this
 (use-package forge
   :straight t
   :after magit)
 
 ;; Org Mode
+(defun poli/org-mode-setup ()
+  (variable-pitch-mode 1))
+
 (use-package org
-  :straight t)
+  :straight t
+  :hook (org-mode . poli/org-mode-setup))
+
 
 (use-package org-bullets
   :straight t
   :after org
-  :hook (org-mode . org-bullets-mode))
+  :hook (org-mode . org-bullets-mode)
+  :config
+  (set-face-attribute 'org-block nil :foreground nil :inherit 'fixed-pitch)
+  (set-face-attribute 'org-code nil :inherit '(shadow fixed-pitch))
+  (set-face-attribute 'org-table nil :inherit 'fixed-pitch))
+
 
 ;; @see https://www.youtube.com/live/VcgjTEa0kU4?feature=share&t=2232 to mix-match variable and
 ;; fixed pitch fonts
+;;(set-face-attribute 'org-default nil :inherit 'variable-pitch)
