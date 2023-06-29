@@ -9,9 +9,9 @@ Add some content before the second heading
 ** This is a sub heading
 
 This is the content of the sub-headig
-- [ ] testonga
-- [ ] shift + alt + enter add items to this list
-- [ ] or shift + option + enter on mac
+- testonga
+- shift + alt + enter add items to this list
+- or shift + option + enter on mac
 
 ** Some second sub heading
 
@@ -32,5 +32,6 @@ You can press alt+enter to add a new heading at the same level as the current he
 
 You can also press options + j or k to up or down the level of theading
 
-** 
+**** This is some new heading bro
+Everything inside this header looks kind of weird compared with the title, maybe can be align somehow
 

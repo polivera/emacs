@@ -1,5 +1,6 @@
 ;; Configuration start
 (setq inhibit-startup-message t)    ; Remove startup message
+;; Also here you can do 'system-type' so we don't show visible bell on macos
 (setq visible-bell t)               ; Make notification visible instead of sound
 
 (scroll-bar-mode -1)                ; Disable scrollbar
@@ -20,13 +21,17 @@
 
 
 ;; Load font
+;; To change fonts and stuff depending on the os check function 'system-type'
+;; Instead of 'default you can also do 'fixed-pitch and 'variable-pitch so set
+;; monospaced or regular fonts
 (set-face-attribute 'default nil :font "SauceCodePro Nerd Font" :height 120)
+
 
 ;; Set theme
 ;;(load-theme 'misterioso)
 
 ;; Basic editor config
-(setq-default tab-width 4):
+(setq-default tab-width 4)
 
 ;; Install Straight.el
 (defvar bootstrap-version)
@@ -81,6 +86,7 @@
 ;; TODO:
 ;; - ripgrep in non-gitignore files
 ;; - find-files non-gitignore but hidden files
+;; - make consult-file start by listing the most recently open
 (use-package consult
   :straight t
   :hook (completion-list-mode . consult-preview-at-point-mode))
@@ -191,7 +197,7 @@
   (projectile-mode)
   :config
   (when (file-directory-p "~/Projects")
-	(setq projectile-project-search-path '(("~/Projects" . 3))))
+	(setq projectile-project-search-path '(("~/Projects" . 2))))
   ;; This will show the directory structure when you switch project
   (setq projectile-switch-project-action #'projectile-dired))
 
@@ -215,3 +221,11 @@
 ;; Org Mode
 (use-package org
   :straight t)
+
+(use-package org-bullets
+  :straight t
+  :after org
+  :hook (org-mode . org-bullets-mode))
+
+;; @see https://www.youtube.com/live/VcgjTEa0kU4?feature=share&t=2232 to mix-match variable and
+;; fixed pitch fonts
