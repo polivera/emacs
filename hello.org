@@ -1,5 +1,6 @@
 * First heading
 This is the content of the first heading
+But this is the new line
 
 * This is the second heading
 Add some content before the second heading
@@ -30,4 +31,7 @@ You can also press options + j or k to up or down the level of theading
 
 **** This is some new heading bro
 Everything inside this header looks kind of weird compared with the title, maybe can be align somehow
+
+***** Something completely different
+This is anoter awesome sub level, it would be level 4 I think
 

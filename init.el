@@ -141,11 +141,6 @@
 						  :prefix "SPC"
 						  ;; This will be used as a leader key when on insert mode
 						  :global-prefix "C-SPC")
-  (poli/leader-keys
-   "t"  '(:ignore t :which-key "toggles")
-   "tt" '(consult-theme :which-key "choose theme")
-   "w" '(save-buffer :which-key "save buffer")
-   ))
 
 ;; Install vim keybindings ) VI emulator layer
 (use-package evil
@@ -187,6 +182,7 @@
   ("q" nil "finish" :exit t))
 
 ;; todo: see if we can group all which-key somehow
+;; ## KeyMapping
 (poli/leader-keys
   "ts" '(hydra-text-scale/body :which-key "scale text"))
 
@@ -199,12 +195,11 @@
   (projectile-mode)
   :config
   (when (file-directory-p "~/Projects")
-	(setq projectile-project-search-path '(("~/Projects" . 2))))
+	;; Limit the amount of subdirectories on which projectile will look into
+	(setq projectile-project-search-path '(("~/Projects" . 1))))
   ;; This will show the directory structure when you switch project
   (setq projectile-switch-project-action #'projectile-dired))
 
-(poli/leader-keys
-  "p" '(projectile-command-map :which-key "Projectile"))
 
 ;; Magit (THE git plugin)
 ;; TODO: gpg password input not working
@@ -227,19 +222,29 @@
 
 (use-package org
   :straight t
-  :hook (org-mode . poli/org-mode-setup))
-
-
-(use-package org-bullets
-  :straight t
-  :after org
-  :hook (org-mode . org-bullets-mode)
+  :hook (org-mode . poli/org-mode-setup)
   :config
   (set-face-attribute 'org-block nil :foreground nil :inherit 'fixed-pitch)
   (set-face-attribute 'org-code nil :inherit '(shadow fixed-pitch))
   (set-face-attribute 'org-table nil :inherit 'fixed-pitch))
 
+(use-package org-bullets
+  :straight t
+  :after org
+  :hook (org-mode . org-bullets-mode))
 
-;; @see https://www.youtube.com/live/VcgjTEa0kU4?feature=share&t=2232 to mix-match variable and
-;; fixed pitch fonts
-;;(set-face-attribute 'org-default nil :inherit 'variable-pitch)
+
+;; Key Definition
+(poli/leader-keys
+  ;; Projectile shortcuts
+  "p" '(projectile-command-map :which-key "Projectile")
+  ;; Find stuff
+  "f" '(:ignore t :which-key "Find")
+  "ff" '(consult-find :which-key "Files")
+  "fb" '(consult-buffer :which-key "Buffer")
+  "fg" '(consult-grep :which-key "Grep")
+  ;; Toggles
+  "t"  '(:ignore t :which-key "toggles")
+  "tt" '(consult-theme :which-key "choose theme")
+  "w" '(save-buffer :which-key "save buffer")
+))
