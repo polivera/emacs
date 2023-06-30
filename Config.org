@@ -1,15 +1,15 @@
 #+title: Emacs configuration file
 #+PROPERTY: header-args:emacs-lisp :tangle ./init.el
+#+OPTIONS: toc:2
 
 This is my personal emacs configuration. I will be using org-babel to generate the configuration file based on this org file.
 
-* Index
-
-
+* Contents Table :toc:
+- [[#basic-configuration][Basic Configuration]]
+- [[#rest-of-the-configuration][Rest of the configuration]]
 
 * Basic Configuration
 This section contains the basic configuration, like wether or not show startup message, visible bell, etc.
-
 
 #+begin_src emacs-lisp 
 ;; Configuration start
@@ -37,6 +37,7 @@ This section contains the basic configuration, like wether or not show startup m
 #+end_src
 
 
+* Rest of the configuration
 #+begin_src emacs-lisp
 	;; Load font
 	;; To change fonts and stuff depending on the os check function 'system-type'
@@ -257,16 +258,21 @@ This section contains the basic configuration, like wether or not show startup m
 
   (defun poli/org-auto-tangle ()
   (when (string-equal (buffer-file-name)
-                      (expand-file-name "~/Projects/Personal/emacs/Config.org"))
+					  (expand-file-name "~/Projects/Personal/emacs/Config.org"))
   (let ((org-confirm-babel-evaluate nil))
   (org-babel-tangle))))
 
   (add-hook 'org-mode-hook (lambda () (add-hook 'after-save-hook #'poli/org-auto-tangle)))
+
 	;(use-package org-bullets
 	;  :straight t
 	;  :after org
 	;  :hook (org-mode . org-bullets-mode))
 
+
+  (use-package toc-org
+  :straight t
+  :hook (org-mode . toc-org-mode))
 
 	;; Key Definition
 	(poli/leader-keys

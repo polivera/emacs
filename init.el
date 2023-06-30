@@ -240,16 +240,21 @@
 
 (defun poli/org-auto-tangle ()
 (when (string-equal (buffer-file-name)
-                    (expand-file-name "~/Projects/Personal/emacs/Config.org"))
+					(expand-file-name "~/Projects/Personal/emacs/Config.org"))
 (let ((org-confirm-babel-evaluate nil))
 (org-babel-tangle))))
 
 (add-hook 'org-mode-hook (lambda () (add-hook 'after-save-hook #'poli/org-auto-tangle)))
+
   ;(use-package org-bullets
   ;  :straight t
   ;  :after org
   ;  :hook (org-mode . org-bullets-mode))
 
+
+(use-package toc-org
+:straight t
+:hook (org-mode . toc-org-mode))
 
   ;; Key Definition
   (poli/leader-keys
