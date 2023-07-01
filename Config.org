@@ -12,6 +12,17 @@ This is my personal emacs configuration. I will be using org-babel to generate t
   - [[#package-consult][Consult]]
   - [[#package-doom-modeline][Doom Modeline]]
   - [[#package-rainbow-delimiters][Rainbow Delimiters]]
+  - [[#package-which-key][Which Key]]
+  - [[#package-catppuccin][Catppuccin Theme]]
+  - [[#package-icons][Icons]]
+  - [[#package-general][General]]
+  - [[#package-evil][Evil]]
+  - [[#package-hydra][Hydra]]
+  - [[#package-projectile][Projectile]]
+  - [[#package-magit][Magit]]
+  - [[#package-forge][Forge]]
+  - [[#package-org][Org Mode]]
+- [[#keymaps][Keymaps]]
 
 
 * Basic Configuration
@@ -19,7 +30,6 @@ This is my personal emacs configuration. I will be using org-babel to generate t
 :custom_id: basic-configuration
 :end:
 This section contains the basic configuration, like wether or not show startup message, visible bell, etc.
-
 #+begin_src emacs-lisp 
   ;; Configuration start
   (setq inhibit-startup-message t)    ; Remove startup message
@@ -156,13 +166,16 @@ The [[https://github.com/minad/consult][Consult.el]] package provides search and
 
   ;; Consult package
   (use-package consult
-	:straight t
-	:hook (completion-list-mode . consult-preview-at-point-mode))
+    :straight t
+    :hook (completion-list-mode . consult-preview-at-point-mode)
+    :config
+    (setq consult-project-root-function #'projectile-project-root)
+  )
 
 #+end_src
 
 *** Pending configurations on consult
-**** TODO ripgrep on non-gitignore files
+**** DONE ripgrep on non-gitignore files
 **** TODO find-files on non-gitignore and hidden files only 
 **** TODO consult-file show most recently open first
 
@@ -271,32 +284,35 @@ This also install [[https://github.com/emacs-evil/evil-collection][Evil Collecti
 #+begin_src emacs-lisp
 
   (use-package evil
-	:straight t
-	:init
-	;; TODO: Learn what this does
-	(setq evil-want-integration t)
-	;; Integration with other modes deactivate becase another package is used for that
-	(setq evil-want-keybinding nil)
-	;; Make it so C-u scroll instead of emacs default behaviour
-	(setq evil-want-C-u-scroll t)
-	(evil-mode 1)
-	:config
-	(define-key evil-insert-state-map (kbd "C-g") 'evil-normal-state)
-	(define-key evil-insert-state-map (kbd "C-h") 'evil-delete-backward-char-and-join)
+    :straight t
+    :init
+    ;; TODO: Learn what this does
+    (setq evil-want-integration t)
+    ;; Integration with other modes deactivate becase another package is used for that
+    (setq evil-want-keybinding nil)
+    ;; Make it so C-u scroll instead of emacs default behaviour
+    (setq evil-want-C-u-scroll t)
+    (evil-mode 1)
+    :config
+    (define-key evil-insert-state-map (kbd "C-g") 'evil-normal-state)
+    (define-key evil-insert-state-map (kbd "C-h") 'evil-delete-backward-char-and-join)
 
-	(evil-global-set-key 'motion "j" 'evil-next-visual-line)
-	(evil-global-set-key 'motion "k" 'evil-previous-visual-line))
+    (evil-set-undo-system 'undo-redo)
+
+    (evil-global-set-key 'motion "j" 'evil-next-visual-line)
+    (evil-global-set-key 'motion "k" 'evil-previous-visual-line))
 
   (use-package evil-collection
-	:straight t
-	:after evil
-	:init
-	(evil-collection-init))
+    :straight t
+    :after evil
+    :init
+    (evil-collection-init))
 
 #+end_src
 *** Pending things to do here
 **** TODO Check if `gu` and `gU` can be remaped
 **** TODO Make d and x not to yank to clipboard, use m instead
+**** DONE Add redo funcitonality
 
 ** Hydra
 :properties:
@@ -334,7 +350,7 @@ The package [[https://github.com/abo-abo/hydra][Hydra]] is used to bind family o
 	:config
 	(when (file-directory-p "~/Projects")
 	  ;; Limit the amount of subdirectories on which projectile will look into
-	  (setq projectile-project-search-path '(("~/Projects" . 1))))
+	  (setq projectile-project-search-path '(("~/Projects" . 3))))
 	;; This will show the directory structure when you switch project
 	(setq projectile-switch-project-action #'projectile-dired))
 
@@ -412,10 +428,10 @@ text
 
   (add-hook 'org-mode-hook (lambda () (add-hook 'after-save-hook #'poli/org-auto-tangle)))
 
-	;(use-package org-bullets
-	;  :straight t
-	;  :after org
-	;  :hook (org-mode . org-bullets-mode))
+  (use-package org-bullets
+    :straight t
+    :after org
+    :hook (org-mode . org-bullets-mode))
 
 #+end_src
 
@@ -437,7 +453,7 @@ List of keybindings for emacs (normally using general)
     "f" '(:ignore t :which-key "Find")
     "ff" '(consult-find :which-key "Files")
     "fb" '(consult-buffer :which-key "Buffer")
-    "fg" '(consult-grep :which-key "Grep")
+    "fg" '(consult-ripgrep :which-key "Grep")
     ;; Toggles
     "t"  '(:ignore t :which-key "toggles")
     "ts" '(hydra-text-scale/body :which-key "scale text")
@@ -455,4 +471,3 @@ The list of not installed packages that I ought to check
 
 ** TODO [[https://github.com/Wilfred/helpful][Helpful Package]]
 Helpful is an alternative to the built-in Emacs help that provides much more contextual information.
-

@@ -80,7 +80,10 @@
 ;; Consult package
 (use-package consult
   :straight t
-  :hook (completion-list-mode . consult-preview-at-point-mode))
+  :hook (completion-list-mode . consult-preview-at-point-mode)
+  :config
+  (setq consult-project-root-function #'projectile-project-root)
+)
 
 ;; Doom Modeline
 (use-package doom-modeline
@@ -138,6 +141,8 @@
   (define-key evil-insert-state-map (kbd "C-g") 'evil-normal-state)
   (define-key evil-insert-state-map (kbd "C-h") 'evil-delete-backward-char-and-join)
 
+  (evil-set-undo-system 'undo-redo)
+
   (evil-global-set-key 'motion "j" 'evil-next-visual-line)
   (evil-global-set-key 'motion "k" 'evil-previous-visual-line))
 
@@ -167,7 +172,7 @@
   :config
   (when (file-directory-p "~/Projects")
 	;; Limit the amount of subdirectories on which projectile will look into
-	(setq projectile-project-search-path '(("~/Projects" . 1))))
+	(setq projectile-project-search-path '(("~/Projects" . 3))))
   ;; This will show the directory structure when you switch project
   (setq projectile-switch-project-action #'projectile-dired))
 
@@ -211,10 +216,10 @@
 
 (add-hook 'org-mode-hook (lambda () (add-hook 'after-save-hook #'poli/org-auto-tangle)))
 
-  ;(use-package org-bullets
-  ;  :straight t
-  ;  :after org
-  ;  :hook (org-mode . org-bullets-mode))
+(use-package org-bullets
+  :straight t
+  :after org
+  :hook (org-mode . org-bullets-mode))
 
 ;; Key Definition
 (poli/leader-keys
@@ -226,7 +231,7 @@
   "f" '(:ignore t :which-key "Find")
   "ff" '(consult-find :which-key "Files")
   "fb" '(consult-buffer :which-key "Buffer")
-  "fg" '(consult-grep :which-key "Grep")
+  "fg" '(consult-ripgrep :which-key "Grep")
   ;; Toggles
   "t"  '(:ignore t :which-key "toggles")
   "ts" '(hydra-text-scale/body :which-key "scale text")
