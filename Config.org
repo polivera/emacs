@@ -45,6 +45,7 @@ This section contains the basic configuration, like wether or not show startup m
 		  (add-hook mode (lambda () (display-line-numbers-mode 0))))
 
   (setq-default tab-width 4)
+  (setq-default indent-tabs-mode nil)
 
 #+end_src
 
@@ -383,8 +384,8 @@ text
 #+begin_src emacs-lisp
 
 	;; Org Mode
-	(defun poli/org-mode-setup ()
-	  (variable-pitch-mode 1))
+  (defun poli/org-mode-setup ()
+    (variable-pitch-mode 1))
 
   (use-package org
 	:straight t
@@ -419,6 +420,31 @@ text
 #+end_src
 
 
+* Keymaps
+:properties:
+:custom_id: keymaps
+:end:
+List of keybindings for emacs (normally using general)
+#+begin_src emacs-lisp
+
+  ;; Key Definition
+  (poli/leader-keys
+    ;; Projectile shortcuts
+    "p" '(projectile-command-map :which-key "Projectile")
+    ;; Write to file
+    "w" '(save-buffer :which-key "save buffer")
+    ;; Find stuff
+    "f" '(:ignore t :which-key "Find")
+    "ff" '(consult-find :which-key "Files")
+    "fb" '(consult-buffer :which-key "Buffer")
+    "fg" '(consult-grep :which-key "Grep")
+    ;; Toggles
+    "t"  '(:ignore t :which-key "toggles")
+    "ts" '(hydra-text-scale/body :which-key "scale text")
+    "tt" '(consult-theme :which-key "choose theme")
+  )
+#+end_src
+
 
 
 * Packages to check
@@ -430,36 +456,3 @@ The list of not installed packages that I ought to check
 ** TODO [[https://github.com/Wilfred/helpful][Helpful Package]]
 Helpful is an alternative to the built-in Emacs help that provides much more contextual information.
 
-
-* Rest of the configuration
-:properties:
-:custom_id: rest-of-the-configuration
-:end:
-#+begin_src emacs-lisp
-
-
-
-	;; todo: see if we can group all which-key somehow
-	;; ## KeyMapping
-	(poli/leader-keys
-	  "ts" '(hydra-text-scale/body :which-key "scale text"))
-
-
-
-	;; Key Definition
-	(poli/leader-keys
-	  ;; Projectile shortcuts
-	  "p" '(projectile-command-map :which-key "Projectile")
-	  ;; Find stuff
-	  "f" '(:ignore t :which-key "Find")
-	  "ff" '(consult-find :which-key "Files")
-	  "fb" '(consult-buffer :which-key "Buffer")
-	  "fg" '(consult-grep :which-key "Grep")
-	  ;; Toggles
-	  "t"  '(:ignore t :which-key "toggles")
-	  "tt" '(consult-theme :which-key "choose theme")
-	  "w" '(save-buffer :which-key "save buffer")
-	)
-#+end_src
-
-somthing new

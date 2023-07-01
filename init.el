@@ -22,6 +22,7 @@
 		(add-hook mode (lambda () (display-line-numbers-mode 0))))
 
 (setq-default tab-width 4)
+(setq-default indent-tabs-mode nil)
 
 ;; Load fonts
 (set-face-attribute 'default nil :font "SauceCodePro Nerd Font" :height 120)
@@ -182,8 +183,8 @@
   :after magit)
 
 ;; Org Mode
-  (defun poli/org-mode-setup ()
-	(variable-pitch-mode 1))
+(defun poli/org-mode-setup ()
+  (variable-pitch-mode 1))
 
 (use-package org
   :straight t
@@ -215,17 +216,12 @@
   ;  :after org
   ;  :hook (org-mode . org-bullets-mode))
 
-;; todo: see if we can group all which-key somehow
-;; ## KeyMapping
-(poli/leader-keys
-  "ts" '(hydra-text-scale/body :which-key "scale text"))
-
-
-
 ;; Key Definition
 (poli/leader-keys
   ;; Projectile shortcuts
   "p" '(projectile-command-map :which-key "Projectile")
+  ;; Write to file
+  "w" '(save-buffer :which-key "save buffer")
   ;; Find stuff
   "f" '(:ignore t :which-key "Find")
   "ff" '(consult-find :which-key "Files")
@@ -233,6 +229,6 @@
   "fg" '(consult-grep :which-key "Grep")
   ;; Toggles
   "t"  '(:ignore t :which-key "toggles")
+  "ts" '(hydra-text-scale/body :which-key "scale text")
   "tt" '(consult-theme :which-key "choose theme")
-  "w" '(save-buffer :which-key "save buffer")
 )
