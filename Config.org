@@ -284,8 +284,7 @@ This also install [[https://github.com/emacs-evil/evil-collection][Evil Collecti
 	(define-key evil-insert-state-map (kbd "C-h") 'evil-delete-backward-char-and-join)
 
 	(evil-global-set-key 'motion "j" 'evil-next-visual-line)
-	(evil-global-set-key 'motion "k" 'evil-previous-visual-line)
-	)
+	(evil-global-set-key 'motion "k" 'evil-previous-visual-line))
 
   (use-package evil-collection
 	:straight t
@@ -319,64 +318,73 @@ The package [[https://github.com/abo-abo/hydra][Hydra]] is used to bind family o
 
 #+end_src
 
-
-* Packages to check
+** Projectile
 :properties:
-:custom_id: packages-to-check
+:custom_id: package-projectile
 :end:
-The list of not installed packages that I ought to check
-
-** TODO [[https://github.com/Wilfred/helpful][Helpful Package]]
-Helpful is an alternative to the built-in Emacs help that provides much more contextual information.
-
-
-* Rest of the configuration
-:properties:
-:custom_id: rest-of-the-configuration
-:end:
+[[https://github.com/bbatsov/projectile][Projectile.el]] package give the ability to identify files that constitute a project, like a ~package.json~ for Node or ~composer.json~ for php.
 #+begin_src emacs-lisp
 
+  ;; Projectile
+  (use-package projectile
+	:straight t
+	:init
+	(projectile-mode)
+	:config
+	(when (file-directory-p "~/Projects")
+	  ;; Limit the amount of subdirectories on which projectile will look into
+	  (setq projectile-project-search-path '(("~/Projects" . 1))))
+	;; This will show the directory structure when you switch project
+	(setq projectile-switch-project-action #'projectile-dired))
 
+#+end_src
+*** Pending things to do here
+**** TODO Make display project at specific directory level. When switching project I can see sub-folders within a project
 
-	;; todo: see if we can group all which-key somehow
-	;; ## KeyMapping
-	(poli/leader-keys
-	  "ts" '(hydra-text-scale/body :which-key "scale text"))
+** Magit
+:properties:
+:custom_id: package-magit
+:end:
+[[https://magit.vc/][Magit]] is a text-based UI for Git
+#+begin_src emacs-lisp
 
-	;; Projectile
-	;; This package give the ability to identify files that constitute a project
-	;; Like package.json in a node project or a composer.json in a php project
-	(use-package projectile
-	  :straight t
-	  :init
-	  (projectile-mode)
-	  :config
-	  (when (file-directory-p "~/Projects")
-		;; Limit the amount of subdirectories on which projectile will look into
-		(setq projectile-project-search-path '(("~/Projects" . 1))))
-	  ;; This will show the directory structure when you switch project
-	  (setq projectile-switch-project-action #'projectile-dired))
+  ;; Magit
+  (use-package magit
+	:straight t
+	:custom
+	(magit-display-buffer-function 'magit-display-buffer-same-window-except-diff-v1))
 
+#+end_src
+*** Pending things to do here
+**** TODO gpg sign password when committing not working
+**** TODO check how to resolve conflicts using magit
 
-	;; Magit (THE git plugin)
-	;; TODO: gpg password input not working
-	;; TODO: investigate resolve conflicts in magit BEFORE it start using it
-	(use-package magit
-	  :straight t
-	  :custom
-	  (magit-display-buffer-function 'magit-display-buffer-same-window-except-diff-v1))
+** Forge
+:properties:
+:custom_id: package-forge
+:end:
+[[https://github.com/magit/forge][Forge]] work on Github or Gitlab from the confort of [[#package-magit][magit]]
+#+begin_src emacs-lisp
 
-	;; Install Forge
-	;; Force is used to interact with github either for task or PRs
-	;; You should set your github token for this
-	(use-package forge
-	  :straight t
-	  :after magit)
+  ;; Forge
+  (use-package forge
+	:straight t
+	:after magit)
+
+#+end_src
+*** Pending things to do here
+**** TODO Set the github token for applications
+
+** Org Mode
+:properties:
+:custom_id: package-org
+:end:
+text
+#+begin_src emacs-lisp
 
 	;; Org Mode
 	(defun poli/org-mode-setup ()
 	  (variable-pitch-mode 1))
-
 
   (use-package org
 	:straight t
@@ -408,6 +416,35 @@ Helpful is an alternative to the built-in Emacs help that provides much more con
 	;  :after org
 	;  :hook (org-mode . org-bullets-mode))
 
+#+end_src
+
+
+
+
+* Packages to check
+:properties:
+:custom_id: packages-to-check
+:end:
+The list of not installed packages that I ought to check
+
+** TODO [[https://github.com/Wilfred/helpful][Helpful Package]]
+Helpful is an alternative to the built-in Emacs help that provides much more contextual information.
+
+
+* Rest of the configuration
+:properties:
+:custom_id: rest-of-the-configuration
+:end:
+#+begin_src emacs-lisp
+
+
+
+	;; todo: see if we can group all which-key somehow
+	;; ## KeyMapping
+	(poli/leader-keys
+	  "ts" '(hydra-text-scale/body :which-key "scale text"))
+
+
 
 	;; Key Definition
 	(poli/leader-keys
@@ -422,7 +459,7 @@ Helpful is an alternative to the built-in Emacs help that provides much more con
 	  "t"  '(:ignore t :which-key "toggles")
 	  "tt" '(consult-theme :which-key "choose theme")
 	  "w" '(save-buffer :which-key "save buffer")
-	))
+	)
 #+end_src
 
 somthing new

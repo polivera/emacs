@@ -138,8 +138,7 @@
   (define-key evil-insert-state-map (kbd "C-h") 'evil-delete-backward-char-and-join)
 
   (evil-global-set-key 'motion "j" 'evil-next-visual-line)
-  (evil-global-set-key 'motion "k" 'evil-previous-visual-line)
-  )
+  (evil-global-set-key 'motion "k" 'evil-previous-visual-line))
 
 (use-package evil-collection
   :straight t
@@ -159,45 +158,32 @@
   ("r" (text-scale-set 0) "reset")
   ("q" nil "finish" :exit t))
 
-;; todo: see if we can group all which-key somehow
-  ;; ## KeyMapping
-  (poli/leader-keys
-	"ts" '(hydra-text-scale/body :which-key "scale text"))
+;; Projectile
+(use-package projectile
+  :straight t
+  :init
+  (projectile-mode)
+  :config
+  (when (file-directory-p "~/Projects")
+	;; Limit the amount of subdirectories on which projectile will look into
+	(setq projectile-project-search-path '(("~/Projects" . 1))))
+  ;; This will show the directory structure when you switch project
+  (setq projectile-switch-project-action #'projectile-dired))
 
-  ;; Projectile
-  ;; This package give the ability to identify files that constitute a project
-  ;; Like package.json in a node project or a composer.json in a php project
-  (use-package projectile
-	:straight t
-	:init
-	(projectile-mode)
-	:config
-	(when (file-directory-p "~/Projects")
-	  ;; Limit the amount of subdirectories on which projectile will look into
-	  (setq projectile-project-search-path '(("~/Projects" . 1))))
-	;; This will show the directory structure when you switch project
-	(setq projectile-switch-project-action #'projectile-dired))
+;; Magit
+(use-package magit
+  :straight t
+  :custom
+  (magit-display-buffer-function 'magit-display-buffer-same-window-except-diff-v1))
 
+;; Forge
+(use-package forge
+  :straight t
+  :after magit)
 
-  ;; Magit (THE git plugin)
-  ;; TODO: gpg password input not working
-  ;; TODO: investigate resolve conflicts in magit BEFORE it start using it
-  (use-package magit
-	:straight t
-	:custom
-	(magit-display-buffer-function 'magit-display-buffer-same-window-except-diff-v1))
-
-  ;; Install Forge
-  ;; Force is used to interact with github either for task or PRs
-  ;; You should set your github token for this
-  (use-package forge
-	:straight t
-	:after magit)
-
-  ;; Org Mode
+;; Org Mode
   (defun poli/org-mode-setup ()
 	(variable-pitch-mode 1))
-
 
 (use-package org
   :straight t
@@ -229,18 +215,24 @@
   ;  :after org
   ;  :hook (org-mode . org-bullets-mode))
 
+;; todo: see if we can group all which-key somehow
+;; ## KeyMapping
+(poli/leader-keys
+  "ts" '(hydra-text-scale/body :which-key "scale text"))
 
-  ;; Key Definition
-  (poli/leader-keys
-	;; Projectile shortcuts
-	"p" '(projectile-command-map :which-key "Projectile")
-	;; Find stuff
-	"f" '(:ignore t :which-key "Find")
-	"ff" '(consult-find :which-key "Files")
-	"fb" '(consult-buffer :which-key "Buffer")
-	"fg" '(consult-grep :which-key "Grep")
-	;; Toggles
-	"t"  '(:ignore t :which-key "toggles")
-	"tt" '(consult-theme :which-key "choose theme")
-	"w" '(save-buffer :which-key "save buffer")
-  ))
+
+
+;; Key Definition
+(poli/leader-keys
+  ;; Projectile shortcuts
+  "p" '(projectile-command-map :which-key "Projectile")
+  ;; Find stuff
+  "f" '(:ignore t :which-key "Find")
+  "ff" '(consult-find :which-key "Files")
+  "fb" '(consult-buffer :which-key "Buffer")
+  "fg" '(consult-grep :which-key "Grep")
+  ;; Toggles
+  "t"  '(:ignore t :which-key "toggles")
+  "tt" '(consult-theme :which-key "choose theme")
+  "w" '(save-buffer :which-key "save buffer")
+)
