@@ -1,203 +1,342 @@
 #+title: Emacs configuration file
 #+PROPERTY: header-args:emacs-lisp :tangle ./init.el
-#+OPTIONS: toc:2
+#+OPTIONS: toc:nil
 
 This is my personal emacs configuration. I will be using org-babel to generate the configuration file based on this org file.
 
 * Contents Table :toc:
 - [[#basic-configuration][Basic Configuration]]
-- [[#rest-of-the-configuration][Rest of the configuration]]
+- [[#font-configuration][Font Configuration]]
+- [[#package][Package]]
+  - [[#package-vertico][Vertico]]
+  - [[#package-consult][Consult]]
+  - [[#package-doom-modeline][Doom Modeline]]
+  - [[#package-rainbow-delimiters][Rainbow Delimiters]]
+
 
 * Basic Configuration
+:properties:
+:custom_id: basic-configuration
+:end:
 This section contains the basic configuration, like wether or not show startup message, visible bell, etc.
 
 #+begin_src emacs-lisp 
-;; Configuration start
-(setq inhibit-startup-message t)    ; Remove startup message
-;; Also here you can do 'system-type' so we don't show visible bell on macos
-(setq visible-bell t)               ; Make notification visible instead of sound
+  ;; Configuration start
+  (setq inhibit-startup-message t)    ; Remove startup message
+  ;; Also here you can do 'system-type' so we don't show visible bell on macos
+  (setq visible-bell t)               ; Make notification visible instead of sound
 
-(scroll-bar-mode -1)                ; Disable scrollbar
-(tool-bar-mode -1)                  ; Disable toolbar
-(tooltip-mode -1)                   ; Disable tooltip
-(menu-bar-mode -1)                  ; Disable menubar
-(set-fringe-mode '(10 . 10))        ; Set left and right margin in pixels
+  (scroll-bar-mode -1)                ; Disable scrollbar
+  (tool-bar-mode -1)                  ; Disable toolbar
+  (tooltip-mode -1)                   ; Disable tooltip
+  (menu-bar-mode -1)                  ; Disable menubar
+  (set-fringe-mode '(10 . 10))        ; Set left and right margin in pixels
 
-;; Enable line numbers
-(column-number-mode)
-(global-display-line-numbers-mode t)
-(setq display-line-numbers-type 'relative)
-;; Disable line numners for some modes
-(dolist (mode '(
-				;;org-mode-hook
-				term-mode-hook
-				dired-mode-hook
-				shell-mode-hook))
-        (add-hook mode (lambda () (display-line-numbers-mode 0))))
+  ;; Enable line numbers
+  (column-number-mode)
+  (global-display-line-numbers-mode t)
+  (setq display-line-numbers-type 'relative)
+  ;; Disable line numners for some modes
+  (dolist (mode '(
+				  ;;org-mode-hook
+				  term-mode-hook
+				  dired-mode-hook
+				  shell-mode-hook))
+		  (add-hook mode (lambda () (display-line-numbers-mode 0))))
+
+  (setq-default tab-width 4)
+
 #+end_src
 
 
-* Rest of the configuration
+* Font Configuration
+:properties:
+:custom_id: font-configuration
+:end:
+This set the default mode for either fix or variable type.
+The *variable pitch* type is being used for the majority of the org-mode stuff except code snippets and tables.
+The *fixed pitch* type font is used for all the rest of the text.
+
 #+begin_src emacs-lisp
-	;; Load font
-	;; To change fonts and stuff depending on the os check function 'system-type'
-	;; monospaced or regular fonts
-	(set-face-attribute 'default nil :font "SauceCodePro Nerd Font" :height 120)
-	(set-face-attribute 'fixed-pitch nil :font "SauceCodePro Nerd Font" :height 120)
-	(set-face-attribute 'variable-pitch nil :font "Comfortaa" :height 120)
+
+  ;; Load fonts
+  (set-face-attribute 'default nil :font "SauceCodePro Nerd Font" :height 120)
+  (set-face-attribute 'fixed-pitch nil :font "SauceCodePro Nerd Font" :height 120)
+  (set-face-attribute 'variable-pitch nil :font "Comfortaa" :height 120)
+
+#+end_src
+
+*** Pending configurations for fonts
+**** TODO Check if its necessary to change the font configuration per system
+For this you can use =system-type=
 
 
-	;; Set theme
-	;;(load-theme 'misterioso)
 
-	;; Basic editor config
-	(setq-default tab-width 4)
+* Package manager
+:properties:
+:custom_id: package-manager
+:end:
+I use [[https://github.com/radian-software/straight.el][straight.el]] to manage emacs packages. It will also integrate with use-package.
 
-	;; Install Straight.el
-	(defvar bootstrap-version)
-	(let ((bootstrap-file
-		   (expand-file-name "straight/repos/straight.el/bootstrap.el" user-emacs-directory))
-		  (bootstrap-version 6))
-	  (unless (file-exists-p bootstrap-file)
-		(with-current-buffer
-			(url-retrieve-synchronously
-			 "https://raw.githubusercontent.com/radian-software/straight.el/develop/install.el"
-			 'silent 'inhibit-cookies)
-		  (goto-char (point-max))
-		  (eval-print-last-sexp)))
-	  (load bootstrap-file nil 'nomessage))
-	;; Prevent package.el loading packages prior to their init-file loading.
-	(setq package-enable-at-startup nil)
+#+begin_src emacs-lisp
 
-	;; use-package integration with straight.el
-	(straight-use-package 'use-package)
+  ;; Install Straight.el
+  (defvar bootstrap-version)
+  (let ((bootstrap-file
+		 (expand-file-name "straight/repos/straight.el/bootstrap.el" user-emacs-directory))
+		(bootstrap-version 6))
+	(unless (file-exists-p bootstrap-file)
+	  (with-current-buffer
+		  (url-retrieve-synchronously
+		   "https://raw.githubusercontent.com/radian-software/straight.el/develop/install.el"
+		   'silent 'inhibit-cookies)
+		(goto-char (point-max))
+		(eval-print-last-sexp)))
+	(load bootstrap-file nil 'nomessage))
+  ;; Prevent package.el loading packages prior to their init-file loading.
+  (setq package-enable-at-startup nil)
 
-	;; Enable vertico
-	;; @see: https://github.com/minad/vertico
-	(use-package vertico
-	  :straight t
-	  ;; Fix this ------
-	  :bind (:map vertico-map
-				  ("C-j" . vertico-next)
-				  ("C-k" . vertico-previous)
-				  ("C-q" . vertico-exit))
-	  :init
-	  (vertico-mode)
+  ;; use-package integration with straight.el
+  (straight-use-package 'use-package)
 
-	  ;; Different scroll margin
-	  ; (setq vertico-scroll-margin 0)
+#+end_src
 
-	  ;; Show more candidates
-	  ; (setq vertico-count 20)
 
-	  ;; Grow and shrink the Vertico minibuffer
-	  ; (setq vertico-resize t)
+* Packages
+:properties:
+:custom_id: packages
+:end:
 
-	  ;; Optionally enable cycling for `vertico-next' and `vertico-previous'.
-	  ; (setq vertico-cycle t)
-	  )
+** Vertico
+:properties:
+:custom_id: package-vertico
+:end:
+The [[https://github.com/minad/vertico][Vertico.el]] package is used for interactive completion. It allows Emacs to have a completion list.
+We also use [[https://www.emacswiki.org/emacs/SaveHist][Save Hist]] included plugin so vertico can order list using usage history.
+#+begin_src emacs-lisp
 
-	;; Persist history over Emacs restarts. Vertico sorts by history position.
-	(use-package savehist
-	  :straight t
-	  :init (savehist-mode))
+  ;; Vertico package
+  (use-package vertico
+	:straight t
+	;; Fix this ------
+	:bind (:map vertico-map
+				("C-j" . vertico-next)
+				("C-k" . vertico-previous)
+				("C-q" . vertico-exit))
+	:init
+	(vertico-mode)
 
-	;; Consult (grep rg ripgrep)
-	;; TODO:
-	;; - ripgrep in non-gitignore files
-	;; - find-files non-gitignore but hidden files
-	;; - make consult-file start by listing the most recently open
-	(use-package consult
-	  :straight t
-	  :hook (completion-list-mode . consult-preview-at-point-mode))
+	;; Different scroll margin
+	; (setq vertico-scroll-margin 0)
 
-	;; Doom Modeline
-	(use-package doom-modeline
-	  :straight t
-	  :init (doom-modeline-mode 1))
+	;; Show more candidates
+	(setq vertico-count 20)
 
-	;; Rainbow delimiter
-	(use-package rainbow-delimiters
-	  :straight t
-	  :hook (prog-mode . rainbow-delimiters-mode))
+	;; Grow and shrink the Vertico minibuffer
+	; (setq vertico-resize t)
 
-	;; Which key
-	(use-package which-key
-	  :straight t
-	  :init (which-key-mode)
-	  :config
-	  (setq which-key-idle-delay 0.2))
+	;; Optionally enable cycling for `vertico-next' and `vertico-previous'.
+	; (setq vertico-cycle t)
+	)
 
-	;; TODO: Check the plugin 'helpful
-	;; Insatll Catppuccin theme
-	(use-package catppuccin-theme
-	  :straight t
-	  :config
-	  (setq catppuccin-flavor 'mocha)
-	  :init
-	  (load-theme 'catppuccin t))
+  ;; Persist history over Emacs restarts. Vertico sorts by history position.
+  (use-package savehist
+	:straight t
+	:init (savehist-mode))
 
-	;; All the icons
-	;; After install this you should run all-the-icons-install-fonts
-	(use-package all-the-icons
-	  :straight t
-	  :if (display-graphic-p))
+#+end_src
 
-	;; Install Nerd Icons as well
-	;; After install this you shoud run nerd-icons-install-fonts
-	;; Also you shoud renew the font cache `fc-cache -f -v`
-	(use-package nerd-icons
-	  :straight t)
+** Consult
+:properties:
+:custom_id: package-consult
+:end:
+The [[https://github.com/minad/consult][Consult.el]] package provides search and navigation commands. This will integrate with [[#vertico][vertico]] to show list matching your searching criteria.
+#+begin_src emacs-lisp
 
-	;; Keybinding helper plugin
-	(use-package general
-	  :straight t
-	  :config
-	  (general-create-definer poli/leader-keys
-							  :keymaps '(normal insert visual emacs)
-							  ;; This will be used as a leader in all modes but insert
-							  :prefix "SPC"
-							  ;; This will be used as a leader key when on insert mode
-							  :global-prefix "C-SPC")
+  ;; Consult package
+  (use-package consult
+	:straight t
+	:hook (completion-list-mode . consult-preview-at-point-mode))
 
-	;; Install vim keybindings ) VI emulator layer
-	(use-package evil
-	  :straight t
-	  :init
-	  ;; I don't know what this does but should be set to true
-	  ;; TODO: Learn what this does
-	  (setq evil-want-integration t)
-	  ;; Integration with other modes deactivate becase another package is used for that
-	  (setq evil-want-keybinding nil)
-	  ;; Make it so C-u scroll instead of emacs default behaviour
-	  (setq evil-want-C-u-scroll t)
-	  (evil-mode 1)
-	  :config
-	  (define-key evil-insert-state-map (kbd "C-g") 'evil-normal-state)
-	  (define-key evil-insert-state-map (kbd "C-h") 'evil-delete-backward-char-and-join)
+#+end_src
 
-	  (evil-global-set-key 'motion "j" 'evil-next-visual-line)
-	  (evil-global-set-key 'motion "k" 'evil-previous-visual-line)
-	  )
+*** Pending configurations on consult
+**** TODO ripgrep on non-gitignore files
+**** TODO find-files on non-gitignore and hidden files only 
+**** TODO consult-file show most recently open first
 
-	(use-package evil-collection
-	  :straight t
-	  :after evil
-	  :init
-	  (evil-collection-init))
+** Doom Modeline
+:properties:
+:custom_id: package-doom-modeline
+:end:
+[[https://github.com/seagle0128/doom-modeline][Doom Modeline]] is a fancy and fast modeline inspired by minimali
+#+begin_src emacs-lisp
 
-	;; Hydra package
-	;; This let you do keybindings that normally require a combination to do it without
-	;; that combination
-	(use-package hydra
-	  :straight t)
+  ;; Doom Modeline
+  (use-package doom-modeline
+	:straight t
+	:init (doom-modeline-mode 1))
+  
+#+end_src
 
-	(defhydra hydra-text-scale (:timeout 4)
-	  "scale text"
-	  ("j" text-scale-increase "in")
-	  ("k" text-scale-decrease "out")
-	  ("r" (text-scale-set 0) "reset")
-	  ("q" nil "finish" :exit t))
+** Rainbow Delimiters
+:properties:
+:custom_id: package-rainbow-delimiters
+:end:
+[[https://github.com/Fanael/rainbow-delimiters][Raibow Delimiters]], as the name suggest, is a rainbow-like parentheses mode
+#+begin_src emacs-lisp
+
+  ;; Rainbow delimiter
+  (use-package rainbow-delimiters
+	:straight t
+	:hook (prog-mode . rainbow-delimiters-mode))
+
+#+end_src
+
+** Which Key
+:properties:
+:custom_id: package-which-key
+:end:
+Emacs [[https://github.com/justbur/emacs-which-key][Which Key]] plugin. This will display legends at the botton showing the list of combitation that follow the one you just did.
+#+begin_src emacs-lisp
+
+  ;; Which key
+  (use-package which-key
+	:straight t
+	:init (which-key-mode)
+	:config
+	(setq which-key-idle-delay 0.2))
+
+#+end_src
+
+** Catppuccin Theme
+:properties:
+:custom_id: package-catppuccin-theme
+:end:
+[[https://github.com/catppuccin/emacs][Catppuccin Theme]] for emacs
+#+begin_src emacs-lisp
+
+  ;; Insatll Catppuccin theme
+  (use-package catppuccin-theme
+	:straight t
+	:config
+	(setq catppuccin-flavor 'mocha)
+	:init
+	(load-theme 'catppuccin t))
+
+#+end_src
+
+** Icons
+:properties:
+:custom_id: package-icons
+:end:
+Some icons packages like [[https://github.com/domtronn/all-the-icons.el][all-the-icons]] and [[https://github.com/rainstormstudio/nerd-icons.el][nerd-icons]]. I should already have the fonts on the dotfiles, but just in case I add them here. Remember to run the commands ~all-the-icons-install-fonts~ and ~nerd-icons-install-fonts~.
+#+begin_src emacs-lisp
+
+  ;; Icons
+  (use-package all-the-icons
+	:straight t
+	:if (display-graphic-p))
+  (use-package nerd-icons
+	:straight t)
+
+#+end_src
+
+** General
+:properties:
+:custom_id: package-general
+:end:
+[[https://github.com/noctuid/general.el][General.el]] provides a convenient method for binding keys.
+#+begin_src emacs-lisp
+
+  (use-package general
+	:straight t
+	:config
+	(general-create-definer poli/leader-keys
+							:keymaps '(normal insert visual emacs)
+							;; This will be used as a leader in all modes but insert
+							:prefix "SPC"
+							;; This will be used as a leader key when on insert mode
+							:global-prefix "C-SPC"))
+
+#+end_src
+
+** Evil
+:properties:
+:custom_id: package-evil
+:end:
+[[https://github.com/emacs-evil/evil][Evil]] is an extensible vi layer for emacs.
+This also install [[https://github.com/emacs-evil/evil-collection][Evil Collection]] that is a collection for key-bindings for different emacs modes.
+#+begin_src emacs-lisp
+
+  (use-package evil
+	:straight t
+	:init
+	;; TODO: Learn what this does
+	(setq evil-want-integration t)
+	;; Integration with other modes deactivate becase another package is used for that
+	(setq evil-want-keybinding nil)
+	;; Make it so C-u scroll instead of emacs default behaviour
+	(setq evil-want-C-u-scroll t)
+	(evil-mode 1)
+	:config
+	(define-key evil-insert-state-map (kbd "C-g") 'evil-normal-state)
+	(define-key evil-insert-state-map (kbd "C-h") 'evil-delete-backward-char-and-join)
+
+	(evil-global-set-key 'motion "j" 'evil-next-visual-line)
+	(evil-global-set-key 'motion "k" 'evil-previous-visual-line)
+	)
+
+  (use-package evil-collection
+	:straight t
+	:after evil
+	:init
+	(evil-collection-init))
+
+#+end_src
+*** Pending things to do here
+**** TODO Check if `gu` and `gU` can be remaped
+**** TODO Make d and x not to yank to clipboard, use m instead
+
+** Hydra
+:properties:
+:custom_id: package-hydra
+:end:
+The package [[https://github.com/abo-abo/hydra][Hydra]] is used to bind family of related commands. Basically instead of hold a key combination and press another. You use hydra to press a shortcut and not have to keep it.
+#+begin_src emacs-lisp
+
+  ;; Hydra package
+  (use-package hydra
+	:straight t)
+
+  ;; Hydra definitions
+  (defhydra hydra-text-scale (:timeout 4)
+	"scale text"
+	("j" text-scale-increase "in")
+	("k" text-scale-decrease "out")
+	("r" (text-scale-set 0) "reset")
+	("q" nil "finish" :exit t))
+
+#+end_src
+
+
+* Packages to check
+:properties:
+:custom_id: packages-to-check
+:end:
+The list of not installed packages that I ought to check
+
+** TODO [[https://github.com/Wilfred/helpful][Helpful Package]]
+Helpful is an alternative to the built-in Emacs help that provides much more contextual information.
+
+
+* Rest of the configuration
+:properties:
+:custom_id: rest-of-the-configuration
+:end:
+#+begin_src emacs-lisp
+
+
 
 	;; todo: see if we can group all which-key somehow
 	;; ## KeyMapping
@@ -252,7 +391,7 @@ This section contains the basic configuration, like wether or not show startup m
 	;; Structure templates for code snippets, used on org-babel
 	;; org-tempo is required for the templates to work
 	(require 'org-tempo)
-	(add-to-list 'org-structure-template-alist '("el" . "src emacs-list"))
+	(add-to-list 'org-structure-template-alist '("el" . "src emacs-lisp"))
 
 	)
 
@@ -269,10 +408,6 @@ This section contains the basic configuration, like wether or not show startup m
 	;  :after org
 	;  :hook (org-mode . org-bullets-mode))
 
-
-  (use-package toc-org
-  :straight t
-  :hook (org-mode . toc-org-mode))
 
 	;; Key Definition
 	(poli/leader-keys

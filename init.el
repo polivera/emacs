@@ -19,169 +19,147 @@
 				term-mode-hook
 				dired-mode-hook
 				shell-mode-hook))
-        (add-hook mode (lambda () (display-line-numbers-mode 0))))
+		(add-hook mode (lambda () (display-line-numbers-mode 0))))
 
-;; Load font
-  ;; To change fonts and stuff depending on the os check function 'system-type'
-  ;; monospaced or regular fonts
-  (set-face-attribute 'default nil :font "SauceCodePro Nerd Font" :height 120)
-  (set-face-attribute 'fixed-pitch nil :font "SauceCodePro Nerd Font" :height 120)
-  (set-face-attribute 'variable-pitch nil :font "Comfortaa" :height 120)
+(setq-default tab-width 4)
 
+;; Load fonts
+(set-face-attribute 'default nil :font "SauceCodePro Nerd Font" :height 120)
+(set-face-attribute 'fixed-pitch nil :font "SauceCodePro Nerd Font" :height 120)
+(set-face-attribute 'variable-pitch nil :font "Comfortaa" :height 120)
 
-  ;; Set theme
-  ;;(load-theme 'misterioso)
+;; Install Straight.el
+(defvar bootstrap-version)
+(let ((bootstrap-file
+	   (expand-file-name "straight/repos/straight.el/bootstrap.el" user-emacs-directory))
+	  (bootstrap-version 6))
+  (unless (file-exists-p bootstrap-file)
+	(with-current-buffer
+		(url-retrieve-synchronously
+		 "https://raw.githubusercontent.com/radian-software/straight.el/develop/install.el"
+		 'silent 'inhibit-cookies)
+	  (goto-char (point-max))
+	  (eval-print-last-sexp)))
+  (load bootstrap-file nil 'nomessage))
+;; Prevent package.el loading packages prior to their init-file loading.
+(setq package-enable-at-startup nil)
 
-  ;; Basic editor config
-  (setq-default tab-width 4)
+;; use-package integration with straight.el
+(straight-use-package 'use-package)
 
-  ;; Install Straight.el
-  (defvar bootstrap-version)
-  (let ((bootstrap-file
-		 (expand-file-name "straight/repos/straight.el/bootstrap.el" user-emacs-directory))
-		(bootstrap-version 6))
-	(unless (file-exists-p bootstrap-file)
-	  (with-current-buffer
-		  (url-retrieve-synchronously
-		   "https://raw.githubusercontent.com/radian-software/straight.el/develop/install.el"
-		   'silent 'inhibit-cookies)
-		(goto-char (point-max))
-		(eval-print-last-sexp)))
-	(load bootstrap-file nil 'nomessage))
-  ;; Prevent package.el loading packages prior to their init-file loading.
-  (setq package-enable-at-startup nil)
+;; Vertico package
+(use-package vertico
+  :straight t
+  ;; Fix this ------
+  :bind (:map vertico-map
+			  ("C-j" . vertico-next)
+			  ("C-k" . vertico-previous)
+			  ("C-q" . vertico-exit))
+  :init
+  (vertico-mode)
 
-  ;; use-package integration with straight.el
-  (straight-use-package 'use-package)
+  ;; Different scroll margin
+  ; (setq vertico-scroll-margin 0)
 
-  ;; Enable vertico
-  ;; @see: https://github.com/minad/vertico
-  (use-package vertico
-	:straight t
-	;; Fix this ------
-	:bind (:map vertico-map
-				("C-j" . vertico-next)
-				("C-k" . vertico-previous)
-				("C-q" . vertico-exit))
-	:init
-	(vertico-mode)
+  ;; Show more candidates
+  (setq vertico-count 20)
 
-	;; Different scroll margin
-	; (setq vertico-scroll-margin 0)
+  ;; Grow and shrink the Vertico minibuffer
+  ; (setq vertico-resize t)
 
-	;; Show more candidates
-	; (setq vertico-count 20)
+  ;; Optionally enable cycling for `vertico-next' and `vertico-previous'.
+  ; (setq vertico-cycle t)
+  )
 
-	;; Grow and shrink the Vertico minibuffer
-	; (setq vertico-resize t)
+;; Persist history over Emacs restarts. Vertico sorts by history position.
+(use-package savehist
+  :straight t
+  :init (savehist-mode))
 
-	;; Optionally enable cycling for `vertico-next' and `vertico-previous'.
-	; (setq vertico-cycle t)
-	)
+;; Consult package
+(use-package consult
+  :straight t
+  :hook (completion-list-mode . consult-preview-at-point-mode))
 
-  ;; Persist history over Emacs restarts. Vertico sorts by history position.
-  (use-package savehist
-	:straight t
-	:init (savehist-mode))
+;; Doom Modeline
+(use-package doom-modeline
+  :straight t
+  :init (doom-modeline-mode 1))
 
-  ;; Consult (grep rg ripgrep)
-  ;; TODO:
-  ;; - ripgrep in non-gitignore files
-  ;; - find-files non-gitignore but hidden files
-  ;; - make consult-file start by listing the most recently open
-  (use-package consult
-	:straight t
-	:hook (completion-list-mode . consult-preview-at-point-mode))
+;; Rainbow delimiter
+(use-package rainbow-delimiters
+  :straight t
+  :hook (prog-mode . rainbow-delimiters-mode))
 
-  ;; Doom Modeline
-  (use-package doom-modeline
-	:straight t
-	:init (doom-modeline-mode 1))
+;; Which key
+(use-package which-key
+  :straight t
+  :init (which-key-mode)
+  :config
+  (setq which-key-idle-delay 0.2))
 
-  ;; Rainbow delimiter
-  (use-package rainbow-delimiters
-	:straight t
-	:hook (prog-mode . rainbow-delimiters-mode))
+;; Insatll Catppuccin theme
+(use-package catppuccin-theme
+  :straight t
+  :config
+  (setq catppuccin-flavor 'mocha)
+  :init
+  (load-theme 'catppuccin t))
 
-  ;; Which key
-  (use-package which-key
-	:straight t
-	:init (which-key-mode)
-	:config
-	(setq which-key-idle-delay 0.2))
+;; Icons
+(use-package all-the-icons
+  :straight t
+  :if (display-graphic-p))
+(use-package nerd-icons
+  :straight t)
 
-  ;; TODO: Check the plugin 'helpful
-  ;; Insatll Catppuccin theme
-  (use-package catppuccin-theme
-	:straight t
-	:config
-	(setq catppuccin-flavor 'mocha)
-	:init
-	(load-theme 'catppuccin t))
+(use-package general
+  :straight t
+  :config
+  (general-create-definer poli/leader-keys
+						  :keymaps '(normal insert visual emacs)
+						  ;; This will be used as a leader in all modes but insert
+						  :prefix "SPC"
+						  ;; This will be used as a leader key when on insert mode
+						  :global-prefix "C-SPC"))
 
-  ;; All the icons
-  ;; After install this you should run all-the-icons-install-fonts
-  (use-package all-the-icons
-	:straight t
-	:if (display-graphic-p))
+(use-package evil
+  :straight t
+  :init
+  ;; TODO: Learn what this does
+  (setq evil-want-integration t)
+  ;; Integration with other modes deactivate becase another package is used for that
+  (setq evil-want-keybinding nil)
+  ;; Make it so C-u scroll instead of emacs default behaviour
+  (setq evil-want-C-u-scroll t)
+  (evil-mode 1)
+  :config
+  (define-key evil-insert-state-map (kbd "C-g") 'evil-normal-state)
+  (define-key evil-insert-state-map (kbd "C-h") 'evil-delete-backward-char-and-join)
 
-  ;; Install Nerd Icons as well
-  ;; After install this you shoud run nerd-icons-install-fonts
-  ;; Also you shoud renew the font cache `fc-cache -f -v`
-  (use-package nerd-icons
-	:straight t)
+  (evil-global-set-key 'motion "j" 'evil-next-visual-line)
+  (evil-global-set-key 'motion "k" 'evil-previous-visual-line)
+  )
 
-  ;; Keybinding helper plugin
-  (use-package general
-	:straight t
-	:config
-	(general-create-definer poli/leader-keys
-							:keymaps '(normal insert visual emacs)
-							;; This will be used as a leader in all modes but insert
-							:prefix "SPC"
-							;; This will be used as a leader key when on insert mode
-							:global-prefix "C-SPC")
+(use-package evil-collection
+  :straight t
+  :after evil
+  :init
+  (evil-collection-init))
 
-  ;; Install vim keybindings ) VI emulator layer
-  (use-package evil
-	:straight t
-	:init
-	;; I don't know what this does but should be set to true
-	;; TODO: Learn what this does
-	(setq evil-want-integration t)
-	;; Integration with other modes deactivate becase another package is used for that
-	(setq evil-want-keybinding nil)
-	;; Make it so C-u scroll instead of emacs default behaviour
-	(setq evil-want-C-u-scroll t)
-	(evil-mode 1)
-	:config
-	(define-key evil-insert-state-map (kbd "C-g") 'evil-normal-state)
-	(define-key evil-insert-state-map (kbd "C-h") 'evil-delete-backward-char-and-join)
+;; Hydra package
+(use-package hydra
+  :straight t)
 
-	(evil-global-set-key 'motion "j" 'evil-next-visual-line)
-	(evil-global-set-key 'motion "k" 'evil-previous-visual-line)
-	)
+;; Hydra definitions
+(defhydra hydra-text-scale (:timeout 4)
+  "scale text"
+  ("j" text-scale-increase "in")
+  ("k" text-scale-decrease "out")
+  ("r" (text-scale-set 0) "reset")
+  ("q" nil "finish" :exit t))
 
-  (use-package evil-collection
-	:straight t
-	:after evil
-	:init
-	(evil-collection-init))
-
-  ;; Hydra package
-  ;; This let you do keybindings that normally require a combination to do it without
-  ;; that combination
-  (use-package hydra
-	:straight t)
-
-  (defhydra hydra-text-scale (:timeout 4)
-	"scale text"
-	("j" text-scale-increase "in")
-	("k" text-scale-decrease "out")
-	("r" (text-scale-set 0) "reset")
-	("q" nil "finish" :exit t))
-
-  ;; todo: see if we can group all which-key somehow
+;; todo: see if we can group all which-key somehow
   ;; ## KeyMapping
   (poli/leader-keys
 	"ts" '(hydra-text-scale/body :which-key "scale text"))
@@ -234,7 +212,7 @@
   ;; Structure templates for code snippets, used on org-babel
   ;; org-tempo is required for the templates to work
   (require 'org-tempo)
-  (add-to-list 'org-structure-template-alist '("el" . "src emacs-list"))
+  (add-to-list 'org-structure-template-alist '("el" . "src emacs-lisp"))
 
   )
 
@@ -251,10 +229,6 @@
   ;  :after org
   ;  :hook (org-mode . org-bullets-mode))
 
-
-(use-package toc-org
-:straight t
-:hook (org-mode . toc-org-mode))
 
   ;; Key Definition
   (poli/leader-keys
