@@ -189,7 +189,7 @@
 
 ;; Org Mode
 (defun poli/org-mode-setup ()
-  (variable-pitch-mode 1))
+  (variable-pitch-mode 0))
 
 (use-package org
   :straight t
@@ -220,6 +220,51 @@
   :straight t
   :after org
   :hook (org-mode . org-bullets-mode))
+
+(use-package flycheck
+  :straight t
+  :init (global-flycheck-mode))
+
+(use-package company
+  :straight t
+  :hook ((emacs-lisp-mode . (lambda ()
+                              (setq-local company-backends '(company-elisp))))
+         (emacs-list-mode . company-mode))
+  :config
+  (company-keymap--unbind-quick-access company-active-map)
+  (setq company-idle-delay 0.1
+        company-minimum-prefix-length 1))
+
+(use-package lsp-mode
+  :straight t
+  :commands (lsp lsp-deferred)
+  :init
+  (setq lsp-keymap-prefix "C-c l")
+  :config
+  (lsp-enable-which-key-integration t))
+
+(use-package typescript-mode
+  :straight t
+  :mode "\\.ts\\'"
+  :hook (typescript-mode . lsp-deferred)
+  :config
+  (setq typescript-indent-level 2))
+
+;; Golang configuration
+(use-package go-mode
+:straight t
+:hook ((go-mode . lsp-deferred)
+       (go-mode . company-mode))
+:bind (:map go-mode-map
+        ("<f6>" . gofmt)
+        ("C-c 6" . gofmt))
+:config
+(require 'lsp-go)
+(setq lsp-go-analyses
+  '((field-alignment . t)
+    (nillness . t)))
+;; Gopath
+(add-to-list 'exec-path "~/.local/share/go/bin"))
 
 ;; Key Definition
 (poli/leader-keys
