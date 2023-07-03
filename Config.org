@@ -179,6 +179,90 @@ The [[https://github.com/minad/consult][Consult.el]] package provides search and
 **** TODO find-files on non-gitignore and hidden files only 
 **** TODO consult-file show most recently open first
 
+** Orderless
+:properties:
+:custom_id: package-orderless
+:end:
+[[https://github.com/oantolin/orderless][Orderless]] completion style for emacs
+#+begin_src emacs-lisp
+(use-package orderless
+  :straight t
+  :custom
+  (completion-styles '(orderless basic))
+  (completion-category-overrides '((file (styles basic partial-completion)))))
+#+end_src
+
+** Marginalia
+:properties:
+:custom_id: package-marginalia
+:end:
+[[https://github.com/minad/marginalia/][Marginalia]] adds help guide to the minibuffer
+#+begin_src emacs-lisp
+
+  ;; Enable rich annotations using the Marginalia package
+  (use-package marginalia
+  :straight t
+  ;; Bind `marginalia-cycle' locally in the minibuffer.  To make the binding
+  ;; available in the *Completions* buffer, add it to the
+  ;; `completion-list-mode-map'.
+  :bind (:map minibuffer-local-map
+         ("M-A" . marginalia-cycle))
+  ;; The :init section is always executed.
+  :init
+
+  ;; Marginalia must be actived in the :init section of use-package such that
+  ;; the mode gets enabled right away. Note that this forces loading the
+  ;; package.
+  (marginalia-mode))
+
+#+end_src
+
+** Embark
+:properties:
+:custom_id: package-embark
+:end:
+[[https://github.com/oantolin/embark/][Embark]] makes easy to choose a command
+#+begin_src emacs-lisp
+
+  (use-package embark
+    :straight t
+
+    :bind
+    (("C-." . embark-act)         ;; pick some comfortable binding
+     ("C-;" . embark-dwim)        ;; good alternative: M-.
+     ("C-h B" . embark-bindings)) ;; alternative for `describe-bindings'
+
+    :init
+
+    ;; Optionally replace the key help with a completing-read interface
+    (setq prefix-help-command #'embark-prefix-help-command)
+
+    ;; Show the Embark target at point via Eldoc.  You may adjust the Eldoc
+    ;; strategy, if you want to see the documentation from multiple providers.
+    (add-hook 'eldoc-documentation-functions #'embark-eldoc-first-target)
+    ;; (setq eldoc-documentation-strategy #'eldoc-documentation-compose-eagerly)
+
+    :config
+
+    ;; Hide the mode line of the Embark live/completions buffers
+    (add-to-list 'display-buffer-alist
+                 '("\\`\\*Embark Collect \\(Live\\|Completions\\)\\*"
+                   nil
+                   (window-parameters (mode-line-format . none)))))
+
+#+end_src
+
+*** Make embark and consult work together
+
+#+begin_src emacs-lisp
+;; Consult users will also want the embark-consult package.
+(use-package embark-consult
+  :straight t ; only need to install it, embark loads it after consult if found
+  :hook
+  (embark-collect-mode . consult-preview-at-point-mode))
+#+end_src
+
+
 ** Doom Modeline
 :properties:
 :custom_id: package-doom-modeline
