@@ -15,11 +15,12 @@
 (setq display-line-numbers-type 'relative)
 ;; Disable line numners for some modes
 (dolist (mode '(
-				;;org-mode-hook
-				term-mode-hook
-				dired-mode-hook
-				shell-mode-hook))
-		(add-hook mode (lambda () (display-line-numbers-mode 0))))
+                ;;org-mode-hook
+                term-mode-hook
+                dired-mode-hook
+                shell-mode-hook
+                treemacs-mode-hook))
+        (add-hook mode (lambda () (display-line-numbers-mode 0))))
 
 (setq-default tab-width 4)
 (setq-default indent-tabs-mode nil)
@@ -293,7 +294,7 @@
   :config
   (when (file-directory-p "~/Projects")
 	;; Limit the amount of subdirectories on which projectile will look into
-	(setq projectile-project-search-path '(("~/Projects" . 3))))
+	(setq projectile-project-search-path '(("~/Projects" . 4))))
   ;; This will show the directory structure when you switch project
   (setq projectile-switch-project-action #'projectile-dired))
 
