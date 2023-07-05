@@ -1,0 +1,47 @@
+#+TITLE: Emacs configuration TODOs
+#+AUTHOR: Pablo Olivera
+
+* TODO Basic configuration changes [0/2]
+- [ ] Add the boilerplate to chagne font faces depending on the OS.
+- [ ] Check if the same can be done based on device name / ID.
+
+* TODO Org Mode configuration changes [0/7]
+- [ ] Use both variable and fixed fonts.
+- [ ] Find a better font for variable pitch font.
+- [ ] Change heading sizes, some are too big.
+- [ ] Change heading bullets, default ones don't look so good.
+- [ ] Change the three dots at the end of a heading that denote content.
+- [ ] See why TODO keyword won't change after the list of task is completed.
+- [ ] Improve keyboard shortcuts.
+
+* TODO Doom modeline configuration changes [0/2]
+- [ ] Check if you can do single modelaine for all the panes.
+- [ ] See how to declutter it.
+
+* TODO Treemacs configuration changes [0/1]
+- [ ] Make it so it cannot be swapped to another pane. Check [[https://www.youtube.com/watch?v=Bu7nF9hPSts][this video]] for information.
+
+* TODO Evil mode configuration changes [0/2]
+- [ ] Make /d/ and /x/ not yank to clipboard, use /m/ for that instead.
+- [ ] Check if /gu/ and /gU/ can be remapped to /tu/ and /tl/.
+
+* TODO Projectile configuration changes [0/1]
+- [ ] Fix projectile look-up depth.
+
+* TODO Magit configuration changes [0/2]
+- [ ] Fix gpg sign password when commit.
+- [ ] Check merge workflow.
+
+* TODO Forge configuration changes [0/1]
+- [ ] Add github token to forge.
+
+* LSP Missing config
+** TODO Golang LSP [0/2]
+   - [ ] Add support for test file, it's kind of weird now
+   - [ ] Add goimports command.
+
+* Whick Key bindings
+** TODO Add bindings for Treemacs [0/3]
+  - [ ] Add binding for toggle it.
+  - [ ] Add binding for add project to the list.
+  - [ ] Add binding to remove project from the list.
