@@ -1,6 +1,4 @@
-*
-!init.el
-!.gitignore
-!hello.org
-!Config.org
-!todos.org
+straight/
+etc/
+var/
+tmp/

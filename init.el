@@ -25,6 +25,20 @@
 (setq-default tab-width 4)
 (setq-default indent-tabs-mode nil)
 
+;; Create a tmp folder inside emacs config so all the backup files go there
+(setq backup-directory-alist `(("." . ,(expand-file-name "tmp/backups/" user-emacs-directory))))
+
+;; Create another tmp directory for auto-saave files
+(make-directory (expand-file-name "tmp/auto-saves" user-emacs-directory) t)
+
+;; Set auto-saves to be store in the new folder
+(setq auto-save-list-file-prefix (expand-file-name "tmp/auto-saves/session" user-emacs-directory)
+  auto-save-file-name-transforms `((".*" ,(expand-file-name "tmp/auto-saves/" user-emacs-directory) t)))
+
+;; If you want to disable lock files, uncomment this line (NOT RECOMMENDED)
+;(setq create-lockfiles nil)
+
+
 ;; Load fonts
 (set-face-attribute 'default nil :font "SauceCodePro Nerd Font" :height 120)
 (set-face-attribute 'fixed-pitch nil :font "SauceCodePro Nerd Font" :height 120)
@@ -48,6 +62,11 @@
 
 ;; use-package integration with straight.el
 (straight-use-package 'use-package)
+
+
+;; Adding package to take care of the rest
+(use-package no-littering
+  :straight t)
 
 ;; Vertico package
 (use-package vertico
