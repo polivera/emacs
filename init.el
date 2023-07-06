@@ -1,3 +1,22 @@
+;; Install Straight.el
+(defvar bootstrap-version)
+(let ((bootstrap-file
+	   (expand-file-name "straight/repos/straight.el/bootstrap.el" user-emacs-directory))
+	  (bootstrap-version 6))
+  (unless (file-exists-p bootstrap-file)
+	(with-current-buffer
+		(url-retrieve-synchronously
+		 "https://raw.githubusercontent.com/radian-software/straight.el/develop/install.el"
+		 'silent 'inhibit-cookies)
+	  (goto-char (point-max))
+	  (eval-print-last-sexp)))
+  (load bootstrap-file nil 'nomessage))
+;; Prevent package.el loading packages prior to their init-file loading.
+(setq package-enable-at-startup nil)
+
+;; use-package integration with straight.el
+(straight-use-package 'use-package)
+
 ;; Configuration start
 (setq inhibit-startup-message t)    ; Remove startup message
 ;; Also here you can do 'system-type' so we don't show visible bell on macos
@@ -38,35 +57,14 @@
 ;; If you want to disable lock files, uncomment this line (NOT RECOMMENDED)
 ;(setq create-lockfiles nil)
 
+;; Adding package to take care of the rest
+(use-package no-littering
+  :straight t)
 
 ;; Load fonts
 (set-face-attribute 'default nil :font "SauceCodePro Nerd Font" :height 120)
 (set-face-attribute 'fixed-pitch nil :font "SauceCodePro Nerd Font" :height 120)
 (set-face-attribute 'variable-pitch nil :font "Comfortaa" :height 120)
-
-;; Install Straight.el
-(defvar bootstrap-version)
-(let ((bootstrap-file
-	   (expand-file-name "straight/repos/straight.el/bootstrap.el" user-emacs-directory))
-	  (bootstrap-version 6))
-  (unless (file-exists-p bootstrap-file)
-	(with-current-buffer
-		(url-retrieve-synchronously
-		 "https://raw.githubusercontent.com/radian-software/straight.el/develop/install.el"
-		 'silent 'inhibit-cookies)
-	  (goto-char (point-max))
-	  (eval-print-last-sexp)))
-  (load bootstrap-file nil 'nomessage))
-;; Prevent package.el loading packages prior to their init-file loading.
-(setq package-enable-at-startup nil)
-
-;; use-package integration with straight.el
-(straight-use-package 'use-package)
-
-
-;; Adding package to take care of the rest
-(use-package no-littering
-  :straight t)
 
 ;; Vertico package
 (use-package vertico
@@ -384,6 +382,29 @@
   :config
   (setq lsp-ui-doc-position 'bottom))
 
+(defun poli/eshell-config ()
+  ;; Save command history
+  (add-hook 'eshell-pre-command-hook 'eshell-save-some-history)
+  ;; Truncate buffer for performance
+  (add-to-list 'eshell-output-filter-function 'eshell-truncate-buffer)
+  ;; Bind some evil mode keys
+  (evil-define-key '(normal insert visual) eshell-mode-map (kbd "C-r") 'eshell-list-history)
+  (evil-define-key '(normal insert visual) eshell-mode-map (kbd "<home>") 'eshell-bol)
+
+  (setq eshell-history-size         10000
+        eshell-buffer-maximum-lines 10000
+        eshell-hist-ignore-dups t
+        eshell-scroll-to-bottom-on-input t))
+
+(use-package eshell-git-prompt
+  :straight t)
+
+(use-package eshell
+  :straight t
+  :hook (eshell-first-time-mode . poli/eshell-config)
+  :config
+  (eshell-git-prompt-use-theme 'powerline))
+
 (defun poli/lsp-mode-setup ()
   (setq lsp-headerline-breadcrumb-segments '(path-up-to-project file symbols))
   (lsp-headerline-breadcrumb-mode))
@@ -428,13 +449,22 @@
 (poli/leader-keys
   ;; Projectile shortcuts
   "p" '(projectile-command-map :which-key "Projectile")
+
   ;; Write to file
   "w" '(save-buffer :which-key "save buffer")
+
+  ;; Treemacs
+  "n" '(treemacs :which-key "open treemacs")
+
   ;; Find stuff
-  "f" '(:ignore t :which-key "Find")
-  "ff" '(projectile-find-file :which-key "Files")
-  "fb" '(projectile-switch-to-buffer :which-key "Buffer")
-  "fg" '(consult-ripgrep :which-key "Grep")
+  "f" '(:ignore t :which-key "find")
+  "ff" '(:ignore :which-key "files in project")
+  "ffp" '(projectile-find-file :which-key "git files")
+  "ffa" '(consult-file :which-key "all files")
+  "fb" '(:ignore :which-key "buffers")
+  "fbp" '(projectile-switch-to-buffer :which-key "project buffers")
+  "fba" '(consult-buffer :which-key "project buffers")
+  "fg" '(consult-ripgrep :which-key "all buffers")
   ;; Toggles
   "t"  '(:ignore t :which-key "toggles")
   "ts" '(hydra-text-scale/body :which-key "scale text")
