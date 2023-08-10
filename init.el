@@ -58,6 +58,11 @@
 (setq inferior-lisp-program "sbcl")
 
 
+;; Evil Mode
+;; -----------------------------------------------
+(use-package evil :demand t)
+
+
 (custom-set-variables
  ;; custom-set-variables was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
