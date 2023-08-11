@@ -47,7 +47,7 @@
   (elpaca-use-package-mode)
   ;; Assume :elpaca t unless otherwise specified.
   (setq elpaca-use-package-by-default t))
-;; Block until current queue processed.
+;; Block until current queue processed
 (elpaca-wait)
 
 
@@ -60,8 +60,13 @@
 
 ;; Evil Mode
 ;; -----------------------------------------------
-(use-package evil :demand t)
-
+(use-package evil
+  :demand t
+  :config
+  (evil-mode)
+  (define-key evil-insert-state-map (kbd "C-g") 'evil-normal-state)
+  (define-key evil-insert-state-map (kbd "TAB") 'tab-to-tab-stop))
+;; TODO disable evil mode on major mode 'slime-repl-mode
 
 (custom-set-variables
  ;; custom-set-variables was added by Custom.
