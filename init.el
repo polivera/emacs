@@ -51,32 +51,145 @@
 (elpaca-wait)
 
 
+;; Basic configurations
+;; -----------------------------------------------
+(setq inhibit-startup-message t)    ; Remove startup message
+;; Make notification visible instead of sound
+;; Don't do that on macos since it will show a horrible icon
+(if (not (eq system-type 'darwin))
+    (setq visible-bell t))               
+
+;; In MacOS change option for command (to keep things the same)
+(if (eq system-type 'darwin)
+    (setq mac-command-modifier 'meta
+          mac-option-modifier nil
+          mac-control-modifier 'control
+          mac-right-command-modifier 'super
+          mac-right-control-modifier 'hyper))
+
+;; Some basics
+(scroll-bar-mode -1)                ; Disable scrollbar
+(tool-bar-mode -1)                  ; Disable toolbar
+(tooltip-mode -1)                   ; Disable tooltip
+(menu-bar-mode -1)                  ; Disable menubar
+(set-fringe-mode '(10 . 10))        ; Set left and right margin in pixels
+
+;; Enable line numbers
+(column-number-mode)
+(global-display-line-numbers-mode t)
+(setq display-line-numbers-type 'relative)
+
+;; Disable line numners for some modes
+(dolist (mode '(
+                ;;org-mode-hook
+                term-mode-hook
+                dired-mode-hook
+                shell-mode-hook
+                treemacs-mode-hook))
+        (add-hook mode (lambda () (display-line-numbers-mode 0))))
+
+;; Tab configuration
+(setq-default tab-width 4)
+(setq-default indent-tabs-mode nil)
+
+;; Create a tmp folder inside emacs config so all the backup files go there
+(setq backup-directory-alist `(("." . ,(expand-file-name "tmp/backups/" user-emacs-directory))))
+
+;; Create another tmp directory for auto-saave files
+(make-directory (expand-file-name "tmp/auto-saves" user-emacs-directory) t)
+
+;; Set auto-saves to be store in the new folder
+(setq auto-save-list-file-prefix (expand-file-name "tmp/auto-saves/session" user-emacs-directory)
+  auto-save-file-name-transforms `((".*" ,(expand-file-name "tmp/auto-saves/" user-emacs-directory) t)))
+
+
 ;; SLIME Superior Lisp Interaction Mode for Emacs.
 ;; -----------------------------------------------
-(use-package slime :demand t)
-;; Point inferior lisp program to common list implementation
-(setq inferior-lisp-program "sbcl")
+(use-package slime
+  :demand t
+  :config
+  ;; Point inferior lisp program to common list implementation
+  (setq inferior-lisp-program "sbcl"))
 
 
 ;; Evil Mode
 ;; -----------------------------------------------
 (use-package evil
   :demand t
+  :init
+  (setq evil-want-keybinding nil)
   :config
+  ;; Evil Startup
   (evil-mode)
+  ;; Evil config
+  (evil-set-undo-system 'undo-redo)
+  ;; Evil keybindings
   (define-key evil-insert-state-map (kbd "C-g") 'evil-normal-state)
   (define-key evil-insert-state-map (kbd "TAB") 'tab-to-tab-stop))
 ;; TODO disable evil mode on major mode 'slime-repl-mode
+;; (maybe evil collections will fix that
 
-(custom-set-variables
- ;; custom-set-variables was added by Custom.
- ;; If you edit it by hand, you could mess it up, so be careful.
- ;; Your init file should contain only one such instance.
- ;; If there is more than one, they won't work right.
- '(custom-enabled-themes '(tango-dark)))
-(custom-set-faces
- ;; custom-set-faces was added by Custom.
- ;; If you edit it by hand, you could mess it up, so be careful.
- ;; Your init file should contain only one such instance.
- ;; If there is more than one, they won't work right.
- )
+
+;; Evil Collections
+;; -----------------------------------------------
+(use-package evil-collection
+  :after evil
+  :config
+  (evil-collection-init))
+
+
+;; EF Themes
+;; -----------------------------------------------
+(use-package ef-themes
+  :demand t
+  :config
+  (load-theme 'ef-maris-dark t))
+
+
+;; Doom Modeline
+;; -----------------------------------------------
+(use-package doom-modeline
+  :demand t
+  :config
+  (doom-modeline-mode 1))
+
+
+;; Which Key
+;; -----------------------------------------------
+(use-package which-key
+  :demand t
+  :config
+  (which-key-mode)
+  (setq which-key-idle-delay 0.2))
+
+
+;; ---------------- Completion ---------------- ;;
+
+;; Vertico
+;; -----------------------------------------------
+;; VERTical Iteractive Completion Framework
+(use-package vertico
+  :demand t
+  :config
+  (vertico-mode 1))
+
+
+;; Marginalia
+;; Nice description on the completion framework
+;; entries
+;; -----------------------------------------------
+(use-package marginalia
+  :after vertico
+  :config
+  (marginalia-mode 1))
+
+
+;; Orderless
+;; Better matching for vertico
+;; -----------------------------------------------
+(use-package orderless
+  :after vertico
+  :custom
+  (completion-styles '(orderless basic))
+  (completion-category-overrides '((file (styles basic partial-completion)))))
+
