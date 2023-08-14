@@ -1,9 +1,4 @@
-;; ========================================================
-;; Emacs configuration file === copy/pasta from scratch ===
-;; ========================================================
-
-;; Installing ELPACA package manager
-;; ---------------------------------
+;; Installing ELPACA Package Manager
 (defvar elpaca-installer-version 0.5)
 (defvar elpaca-directory (expand-file-name "elpaca/" user-emacs-directory))
 (defvar elpaca-builds-directory (expand-file-name "builds/" elpaca-directory))
@@ -47,17 +42,23 @@
   (elpaca-use-package-mode)
   ;; Assume :elpaca t unless otherwise specified.
   (setq elpaca-use-package-by-default t))
+
 ;; Block until current queue processed
 (elpaca-wait)
 
+(defun poli/org-setup()
+      ;; Should I remove variable pitch font from org mode?
+      (variable-pitch-mode 0)
+      (local-set-key (kbd "C-<space>") 'tempo-complete-tag)
+      (require 'org-tempo)
+      (add-to-list 'org-structure-template-alist '("el" . "src emacs-lisp"))
+)
 
-;; Basic configurations
-;; -----------------------------------------------
+(use-package org
+    :demand t
+    :hook (org-mode . poli/org-setup))
+
 (setq inhibit-startup-message t)    ; Remove startup message
-;; Make notification visible instead of sound
-;; Don't do that on macos since it will show a horrible icon
-(if (not (eq system-type 'darwin))
-    (setq visible-bell t))               
 
 ;; In MacOS change option for command (to keep things the same)
 (if (eq system-type 'darwin)
@@ -65,9 +66,11 @@
           mac-option-modifier nil
           mac-control-modifier 'control
           mac-right-command-modifier 'super
-          mac-right-control-modifier 'hyper))
+          mac-right-control-modifier 'control))
 
-;; Some basics
+(if (not (eq system-type 'darwin))
+    (setq visible-bell t))
+
 (scroll-bar-mode -1)                ; Disable scrollbar
 (tool-bar-mode -1)                  ; Disable toolbar
 (tooltip-mode -1)                   ; Disable tooltip
@@ -92,6 +95,8 @@
 (setq-default tab-width 4)
 (setq-default indent-tabs-mode nil)
 
+(savehist-mode 1)
+
 ;; Create a tmp folder inside emacs config so all the backup files go there
 (setq backup-directory-alist `(("." . ,(expand-file-name "tmp/backups/" user-emacs-directory))))
 
@@ -100,8 +105,108 @@
 
 ;; Set auto-saves to be store in the new folder
 (setq auto-save-list-file-prefix (expand-file-name "tmp/auto-saves/session" user-emacs-directory)
-  auto-save-file-name-transforms `((".*" ,(expand-file-name "tmp/auto-saves/" user-emacs-directory) t)))
+    auto-save-file-name-transforms `((".*" ,(expand-file-name "tmp/auto-saves/" user-emacs-directory) t)))
 
+;; Load fonts
+;; -----------------------------------------------
+(set-face-attribute 'default nil :font "JetBrainsMono Nerd Font" :height 105)
+(set-face-attribute 'fixed-pitch nil :font "JetBrainsMono Nerd Font" :height 105)
+
+;; EF Themes
+;; -----------------------------------------------
+(use-package ef-themes
+    :demand t
+    :config
+    (load-theme 'ef-maris-dark t))
+
+;; Doom Modeline
+;; -----------------------------------------------
+(use-package doom-modeline
+    :demand t
+    :config
+    (doom-modeline-mode 1))
+
+;; Evil Mode
+;; -----------------------------------------------
+(use-package evil
+    :demand t
+    :init
+    (setq evil-want-keybinding nil)
+    (setq evil-want-C-u-scroll t)
+    :config
+    ;; Evil Startup
+    (evil-mode)
+    ;; Evil config
+    (evil-set-undo-system 'undo-redo)
+    ;; Evil keybindings
+    (define-key evil-insert-state-map (kbd "C-g") 'evil-normal-state)
+    (define-key evil-insert-state-map (kbd "TAB") 'tab-to-tab-stop)
+    (evil-set-initial-state 'slime-repl-mode 'emacs))
+
+
+;; Evil Collections
+;; -----------------------------------------------
+(use-package evil-collection
+    :after evil
+    :config
+    (evil-collection-init))
+
+;; Vertico
+;; -----------------------------------------------
+;; VERTical Iteractive Completion Framework
+(use-package vertico
+    :demand t
+    :bind (:map vertico-map
+            ("C-j" . vertico-next)
+            ("C-k" . vertico-previous)
+            ("C-q" . vertico-exit))
+    :config
+    (vertico-mode 1))
+
+;; Marginalia
+;; Nice description on the completion framework
+;; entries
+;; -----------------------------------------------
+(use-package marginalia
+    :after vertico
+    :config
+    (marginalia-mode 1))
+
+;; Orderless
+;; Better matching for vertico
+;; -----------------------------------------------
+(use-package orderless
+    :after vertico
+    :custom
+    (completion-styles '(orderless basic))
+    (completion-category-overrides '((file (styles basic partial-completion)))))
+
+;; Projectile
+(use-package projectile
+    :demand t
+    :init
+    (projectile-mode)
+    :config
+    (when (file-directory-p "~/Projects")
+    ;; Limit the amount of subdirectories on which projectile will look into
+    (setq projectile-project-search-path '(("~/Projects" . 4))))
+    ;; This will open a new project in Dired
+    (setq projectile-switch-project-action #'projectile-dired))
+
+;; LSP Configuration
+(defun poli/lsp-setup ()
+  (setq lsp-headerline-breadcrumb-segments '(path-up-to-project file symbols))
+  (lsp-headerline-breadcrumb-mode))
+
+(use-package lsp-mode
+  :demand t
+  :commands (lsp lsp-deferred)
+  :init
+  (setq lsp-keymap-prefix "C-c l")
+  :config
+  (lsp-enable-which-key-integration t)
+  :hook
+  (lsp-mode . poli/lsp-setup))
 
 ;; SLIME Superior Lisp Interaction Mode for Emacs.
 ;; -----------------------------------------------
@@ -112,46 +217,14 @@
   (setq inferior-lisp-program "sbcl"))
 
 
-;; Evil Mode
-;; -----------------------------------------------
-(use-package evil
-  :demand t
-  :init
-  (setq evil-want-keybinding nil)
-  :config
-  ;; Evil Startup
-  (evil-mode)
-  ;; Evil config
-  (evil-set-undo-system 'undo-redo)
-  ;; Evil keybindings
-  (define-key evil-insert-state-map (kbd "C-g") 'evil-normal-state)
-  (define-key evil-insert-state-map (kbd "TAB") 'tab-to-tab-stop))
-;; TODO disable evil mode on major mode 'slime-repl-mode
-;; (maybe evil collections will fix that
 
 
-;; Evil Collections
-;; -----------------------------------------------
-(use-package evil-collection
-  :after evil
-  :config
-  (evil-collection-init))
 
 
-;; EF Themes
-;; -----------------------------------------------
-(use-package ef-themes
-  :demand t
-  :config
-  (load-theme 'ef-maris-dark t))
 
 
-;; Doom Modeline
-;; -----------------------------------------------
-(use-package doom-modeline
-  :demand t
-  :config
-  (doom-modeline-mode 1))
+
+
 
 
 ;; Which Key
@@ -162,34 +235,4 @@
   (which-key-mode)
   (setq which-key-idle-delay 0.2))
 
-
 ;; ---------------- Completion ---------------- ;;
-
-;; Vertico
-;; -----------------------------------------------
-;; VERTical Iteractive Completion Framework
-(use-package vertico
-  :demand t
-  :config
-  (vertico-mode 1))
-
-
-;; Marginalia
-;; Nice description on the completion framework
-;; entries
-;; -----------------------------------------------
-(use-package marginalia
-  :after vertico
-  :config
-  (marginalia-mode 1))
-
-
-;; Orderless
-;; Better matching for vertico
-;; -----------------------------------------------
-(use-package orderless
-  :after vertico
-  :custom
-  (completion-styles '(orderless basic))
-  (completion-category-overrides '((file (styles basic partial-completion)))))
-
