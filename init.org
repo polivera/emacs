@@ -128,7 +128,11 @@ Also remove line number on certain modes
 #+end_src
 ** Turn on savehist
 #+begin_src emacs-lisp
-(savehist-mode 1)
+  ;; (savehist-mode 1)
+  (use-package savehist
+    :elpaca nil
+    :init
+    (savehist-mode))
 #+end_src
 
 ** Set backup file destination
@@ -173,7 +177,8 @@ Also remove line number on certain modes
         (doom-modeline-mode 1))
 #+end_src
 
-* Evil Mode Configuration
+* Keybinfings
+** Evil Mode Configuration
 #+begin_src emacs-lisp
     ;; Evil Mode
     ;; -----------------------------------------------
@@ -189,7 +194,7 @@ Also remove line number on certain modes
         (evil-set-undo-system 'undo-redo)
         ;; Evil keybindings
         (define-key evil-insert-state-map (kbd "C-g") 'evil-normal-state)
-        (define-key evil-insert-state-map (kbd "TAB") 'tab-to-tab-stop)
+        ;(define-key evil-insert-state-map (kbd "TAB") 'tab-to-tab-stop)
         (evil-set-initial-state 'slime-repl-mode 'emacs))
 
 
@@ -200,9 +205,25 @@ Also remove line number on certain modes
         :config
         (evil-collection-init))
 #+end_src
+** General
+#+begin_src emacs-lisp
+  (use-package general
+    :demand t
+    :config
+    (general-evil-setup)
+    ;; integrate general with evil
+
+    ;; set up 'SPC' as the global leader key
+    (general-create-definer poli/leader-keys
+      :states '(normal insert visual emacs)
+      :keymaps 'override
+      :prefix "SPC" ;; set leader
+      :global-prefix "M-SPC") ;; access leader in insert mode
+  )
+#+end_src
 
 * Completion System
-** Vertical Interface Completion Framework
+** Vertico - Vertical Interface Completion Framework
 #+begin_src emacs-lisp
   ;; Vertico
   ;; -----------------------------------------------
@@ -217,7 +238,7 @@ Also remove line number on certain modes
       (vertico-mode 1))
 #+end_src
 
-** Margin Help Details
+** Marginalia - Margin Help Details
 #+begin_src emacs-lisp
     ;; Marginalia
     ;; Nice description on the completion framework
@@ -229,7 +250,7 @@ Also remove line number on certain modes
         (marginalia-mode 1))
 #+end_src
 
-** Better list sorting
+** Orderless - Better list sorting
 #+begin_src emacs-lisp
     ;; Orderless
     ;; Better matching for vertico
@@ -239,6 +260,23 @@ Also remove line number on certain modes
         :custom
         (completion-styles '(orderless basic))
         (completion-category-overrides '((file (styles basic partial-completion)))))
+#+end_src
+
+** Corfu - Complete In Region
+#+begin_src emacs-lisp
+  ;; Corfu
+  ;; Auto completion example
+  (use-package corfu
+    :demand t
+    :custom
+    (corfu-auto t)          ;; Enable auto completion
+    (corfu-auto-delay 0.0)
+    ;; (corfu-separator ?_) ;; Set to orderless separator, if not using space
+    :bind
+    ;; Another key binding can be used, such as S-SPC.
+    (:map corfu-map ("M-SPC" . corfu-insert-separator))
+    :init
+    (global-corfu-mode))
 #+end_src
 
 * Project Management
@@ -256,26 +294,76 @@ Also remove line number on certain modes
         ;; This will open a new project in Dired
         (setq projectile-switch-project-action #'projectile-dired))
 #+end_src
+** Magit
+#+begin_src emacs-lisp
+  ;; Magit
+  (use-package magit
+    :demand t
+    :custom
+    (magit-display-buffer-function 'magit-display-buffer-same-window-except-diff-v1))
+#+end_src
 
 * Software Development
 ** LSP
+*** LSP Base Config
 #+begin_src emacs-lisp
-    ;; LSP Configuration
+  ;; LSP Configuration
+  (use-package lsp-mode
+    :demand t
+    :after corfu
+    :custom
+    (lsp-completion-provider :none)
+    :init
+    (setq lsp-keymap-prefix "C-c l")
     (defun poli/lsp-setup ()
-      (setq lsp-headerline-breadcrumb-segments '(path-up-to-project file symbols))
-      (lsp-headerline-breadcrumb-mode))
-
-    (use-package lsp-mode
-      :demand t
-      :commands (lsp lsp-deferred)
-      :init
-      (setq lsp-keymap-prefix "C-c l")
-      :config
-      (lsp-enable-which-key-integration t)
-      :hook
-      (lsp-mode . poli/lsp-setup))
+        (setq lsp-headerline-breadcrumb-segments '(path-up-to-project file symbols))
+        (lsp-headerline-breadcrumb-mode))
+    (defun poli/lsp-completion-setup()
+        (setf (alist-get 'styles (alist-get 'lsp-capf completion-category-defaults))
+              '(orderless))) ;; Configure orderless
+    :commands
+    (lsp lsp-deferred)
+    :config
+    (lsp-enable-which-key-integration t)
+    :hook
+    (lsp-mode . poli/lsp-setup)
+    (lsp-completion-mode . poli/lsp-completion-setup))
+#+end_src
+*** LSP UI
+#+begin_src emacs-lisp
+  (use-package lsp-ui
+    :demand t
+    :after lsp-mode
+    :commands lsp-ui-mode)
 #+end_src
 
+*** (FlyCheck) Syntax Checking
+#+begin_src emacs-lisp
+(use-package flycheck
+  :demand t
+  :init (global-flycheck-mode))
+#+end_src
+
+*** Languages
+**** Go
+#+begin_src emacs-lisp
+  ;; Golang configuration
+  (use-package go-mode
+  :demand t
+  :hook (
+    (go-mode . lsp-deferred)
+  )
+  :bind (:map go-mode-map
+        ("<f6>" . gofmt)
+        ("C-c 6" . gofmt))
+  :config
+  (require 'lsp-go)
+  (setq lsp-go-analyses
+    '((field-alignment . t)
+      (nillness . t)))
+  ;; Gopath
+  (add-to-list 'exec-path "~/.local/share/go/bin"))
+#+end_src
 
 
 * The REST
@@ -315,3 +403,5 @@ Also remove line number on certain modes
 
 
 #+end_src
+
+

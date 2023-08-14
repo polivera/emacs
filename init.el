@@ -95,7 +95,11 @@
 (setq-default tab-width 4)
 (setq-default indent-tabs-mode nil)
 
-(savehist-mode 1)
+;; (savehist-mode 1)
+(use-package savehist
+  :elpaca nil
+  :init
+  (savehist-mode))
 
 ;; Create a tmp folder inside emacs config so all the backup files go there
 (setq backup-directory-alist `(("." . ,(expand-file-name "tmp/backups/" user-emacs-directory))))
@@ -140,7 +144,7 @@
     (evil-set-undo-system 'undo-redo)
     ;; Evil keybindings
     (define-key evil-insert-state-map (kbd "C-g") 'evil-normal-state)
-    (define-key evil-insert-state-map (kbd "TAB") 'tab-to-tab-stop)
+    ;(define-key evil-insert-state-map (kbd "TAB") 'tab-to-tab-stop)
     (evil-set-initial-state 'slime-repl-mode 'emacs))
 
 
@@ -150,6 +154,20 @@
     :after evil
     :config
     (evil-collection-init))
+
+(use-package general
+  :demand t
+  :config
+  (general-evil-setup)
+  ;; integrate general with evil
+
+  ;; set up 'SPC' as the global leader key
+  (general-create-definer poli/leader-keys
+    :states '(normal insert visual emacs)
+    :keymaps 'override
+    :prefix "SPC" ;; set leader
+    :global-prefix "M-SPC") ;; access leader in insert mode
+)
 
 ;; Vertico
 ;; -----------------------------------------------
@@ -181,6 +199,20 @@
     (completion-styles '(orderless basic))
     (completion-category-overrides '((file (styles basic partial-completion)))))
 
+;; Corfu
+;; Auto completion example
+(use-package corfu
+  :demand t
+  :custom
+  (corfu-auto t)          ;; Enable auto completion
+  (corfu-auto-delay 0.0)
+  ;; (corfu-separator ?_) ;; Set to orderless separator, if not using space
+  :bind
+  ;; Another key binding can be used, such as S-SPC.
+  (:map corfu-map ("M-SPC" . corfu-insert-separator))
+  :init
+  (global-corfu-mode))
+
 ;; Projectile
 (use-package projectile
     :demand t
@@ -193,20 +225,59 @@
     ;; This will open a new project in Dired
     (setq projectile-switch-project-action #'projectile-dired))
 
-;; LSP Configuration
-(defun poli/lsp-setup ()
-  (setq lsp-headerline-breadcrumb-segments '(path-up-to-project file symbols))
-  (lsp-headerline-breadcrumb-mode))
+;; Magit
+(use-package magit
+  :demand t
+  :custom
+  (magit-display-buffer-function 'magit-display-buffer-same-window-except-diff-v1))
 
+;; LSP Configuration
 (use-package lsp-mode
   :demand t
-  :commands (lsp lsp-deferred)
+  :after corfu
+  :custom
+  (lsp-completion-provider :none)
   :init
   (setq lsp-keymap-prefix "C-c l")
+  (defun poli/lsp-setup ()
+      (setq lsp-headerline-breadcrumb-segments '(path-up-to-project file symbols))
+      (lsp-headerline-breadcrumb-mode))
+  (defun poli/lsp-completion-setup()
+      (setf (alist-get 'styles (alist-get 'lsp-capf completion-category-defaults))
+            '(orderless))) ;; Configure orderless
+  :commands
+  (lsp lsp-deferred)
   :config
   (lsp-enable-which-key-integration t)
   :hook
-  (lsp-mode . poli/lsp-setup))
+  (lsp-mode . poli/lsp-setup)
+  (lsp-completion-mode . poli/lsp-completion-setup))
+
+(use-package lsp-ui
+  :demand t
+  :after lsp-mode
+  :commands lsp-ui-mode)
+
+(use-package flycheck
+  :demand t
+  :init (global-flycheck-mode))
+
+;; Golang configuration
+(use-package go-mode
+:demand t
+:hook (
+  (go-mode . lsp-deferred)
+)
+:bind (:map go-mode-map
+      ("<f6>" . gofmt)
+      ("C-c 6" . gofmt))
+:config
+(require 'lsp-go)
+(setq lsp-go-analyses
+  '((field-alignment . t)
+    (nillness . t)))
+;; Gopath
+(add-to-list 'exec-path "~/.local/share/go/bin"))
 
 ;; SLIME Superior Lisp Interaction Mode for Emacs.
 ;; -----------------------------------------------
