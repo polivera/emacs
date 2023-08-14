@@ -95,7 +95,11 @@
 (setq-default tab-width 4)
 (setq-default indent-tabs-mode nil)
 
-(savehist-mode 1)
+;; (savehist-mode 1)
+(use-package savehist
+  :elpaca nil
+  :init
+  (savehist-mode))
 
 ;; Create a tmp folder inside emacs config so all the backup files go there
 (setq backup-directory-alist `(("." . ,(expand-file-name "tmp/backups/" user-emacs-directory))))
@@ -140,9 +144,8 @@
     (evil-set-undo-system 'undo-redo)
     ;; Evil keybindings
     (define-key evil-insert-state-map (kbd "C-g") 'evil-normal-state)
-    (define-key evil-insert-state-map (kbd "TAB") 'tab-to-tab-stop)
+    ;(define-key evil-insert-state-map (kbd "TAB") 'tab-to-tab-stop)
     (evil-set-initial-state 'slime-repl-mode 'emacs))
-
 
 ;; Evil Collections
 ;; -----------------------------------------------
@@ -150,6 +153,32 @@
     :after evil
     :config
     (evil-collection-init))
+
+(use-package evil-commentary
+  :after evil
+  :config
+  (evil-commentary-mode)) ;; globally enable evil-commentary
+
+(use-package general
+  :demand t
+  :after evil
+  :config
+  (general-evil-setup)
+  ;; integrate general with evil
+
+  ;; set up 'SPC' as the global leader key
+  (general-create-definer poli/leader-keys
+    :states '(normal insert visual emacs)
+    :keymaps 'override
+    :prefix "SPC" ;; set leader
+    :global-prefix "M-SPC") ;; access leader in insert mode
+)
+
+(use-package which-key
+  :demand t
+  :config
+  (which-key-mode)
+  (setq which-key-idle-delay 0.2))
 
 ;; Vertico
 ;; -----------------------------------------------
@@ -181,6 +210,25 @@
     (completion-styles '(orderless basic))
     (completion-category-overrides '((file (styles basic partial-completion)))))
 
+(use-package consult
+  :demand t
+  :config
+  (setq consult-project-root-function #'projectile-project-root))
+
+;; Corfu
+;; Auto completion example
+(use-package corfu
+  :demand t
+  :custom
+  (corfu-auto t)          ;; Enable auto completion
+  (corfu-auto-delay 0.0)
+  ;; (corfu-separator ?_) ;; Set to orderless separator, if not using space
+  :bind
+  ;; Another key binding can be used, such as S-SPC.
+  (:map corfu-map ("M-SPC" . corfu-insert-separator))
+  :init
+  (global-corfu-mode))
+
 ;; Projectile
 (use-package projectile
     :demand t
@@ -193,20 +241,106 @@
     ;; This will open a new project in Dired
     (setq projectile-switch-project-action #'projectile-dired))
 
-;; LSP Configuration
-(defun poli/lsp-setup ()
-  (setq lsp-headerline-breadcrumb-segments '(path-up-to-project file symbols))
-  (lsp-headerline-breadcrumb-mode))
+;; Magit
+(use-package magit
+  :demand t
+  :custom
+  (magit-display-buffer-function 'magit-display-buffer-same-window-except-diff-v1))
 
+;; Adding treesitter github sources list
+(setq treesit-language-source-alist
+'((bash "https://github.com/tree-sitter/tree-sitter-bash")
+  (c "https://github.com/tree-sitter/tree-sitter-c")
+  (cmake "https://github.com/uyha/tree-sitter-cmake")
+  (common-lisp "https://github.com/theHamsta/tree-sitter-commonlisp")
+  (cpp "https://github.com/tree-sitter/tree-sitter-cpp")
+  (css "https://github.com/tree-sitter/tree-sitter-css")
+  (csharp "https://github.com/tree-sitter/tree-sitter-c-sharp")
+  (elisp "https://github.com/Wilfred/tree-sitter-elisp")
+  (go "https://github.com/tree-sitter/tree-sitter-go")
+  (gomod "https://github.com/camdencheek/tree-sitter-go-mod")
+  (html "https://github.com/tree-sitter/tree-sitter-html")
+  (js . ("https://github.com/tree-sitter/tree-sitter-javascript" "master" "src"))
+  (json "https://github.com/tree-sitter/tree-sitter-json")
+  (lua "https://github.com/Azganoth/tree-sitter-lua")
+  (make "https://github.com/alemuller/tree-sitter-make")
+  (markdown "https://github.com/ikatyang/tree-sitter-markdown")
+  (python "https://github.com/tree-sitter/tree-sitter-python")
+  (r "https://github.com/r-lib/tree-sitter-r")
+  (rust "https://github.com/tree-sitter/tree-sitter-rust")
+  (toml "https://github.com/tree-sitter/tree-sitter-toml")
+  (tsx . ("https://github.com/tree-sitter/tree-sitter-typescript" "master" "tsx/src"))
+  (typescript . ("https://github.com/tree-sitter/tree-sitter-typescript" "master" "typescript/src"))
+  (yaml "https://github.com/ikatyang/tree-sitter-yaml")))
+
+;; (setq treesit-load-name-override-list
+;;   '((go-mod "libtree-sitter-go-mod" "tree_sitter_gomod"))
+
+;; LSP Configuration
 (use-package lsp-mode
   :demand t
-  :commands (lsp lsp-deferred)
+  :after corfu
+  :custom
+  (lsp-completion-provider :none)
   :init
   (setq lsp-keymap-prefix "C-c l")
+  (defun poli/lsp-setup ()
+      (setq lsp-headerline-breadcrumb-segments '(path-up-to-project file symbols))
+      (lsp-headerline-breadcrumb-mode))
+  (defun poli/lsp-completion-setup()
+      (setf (alist-get 'styles (alist-get 'lsp-capf completion-category-defaults))
+            '(orderless))) ;; Configure orderless
+  :commands
+  (lsp lsp-deferred)
   :config
   (lsp-enable-which-key-integration t)
   :hook
-  (lsp-mode . poli/lsp-setup))
+  (lsp-mode . poli/lsp-setup)
+  (lsp-completion-mode . poli/lsp-completion-setup))
+
+(use-package lsp-ui
+  :demand t
+  :after lsp-mode
+  :commands lsp-ui-mode)
+
+(use-package flycheck
+  :demand t
+  :init (global-flycheck-mode))
+
+;; Golang configuration
+(use-package go-mode
+:demand t
+:hook (
+  (go-mode . lsp-deferred)
+)
+:bind (:map go-mode-map
+      ("<f6>" . gofmt)
+      ("C-c 6" . gofmt))
+:config
+(require 'lsp-go)
+;; Set Gopls tags
+(setq lsp-go-env '((GOFLAGS . "-tags=unit")))
+(setq lsp-go-analyses
+  '((field-alignment . t)
+    (nillness . t)))
+;; Gopath
+(add-to-list 'exec-path "~/.local/share/go/bin"))
+
+(elpaca-wait)
+
+;; Consult General keybindings
+(poli/leader-keys
+  "bb" '(consult-buffer :wk "consult buffer")
+  "Bb" '(consult-bookmark :wk "consult bookmark")
+  "ht" '(consult-theme :wk "consult theme")
+  "sr" '(consult-ripgrep :wk "consult rg")
+  "sg" '(consult-grep :wk "consult grep")
+  "sG" '(consult-git-grep :wk "consult git grep")
+  "sf" '(consult-find :wk "consult find")
+  "sF" '(consult-locate :wk "consult locate")
+  "sl" '(consult-line :wk "consult line")
+  "sy" '(consult-yank-from-kill-ring :wk "consult yank from kill ring")
+  "i" '(consult-imenu :wk "consult imenu"))
 
 ;; SLIME Superior Lisp Interaction Mode for Emacs.
 ;; -----------------------------------------------
@@ -215,24 +349,3 @@
   :config
   ;; Point inferior lisp program to common list implementation
   (setq inferior-lisp-program "sbcl"))
-
-
-
-
-
-
-
-
-
-
-
-
-;; Which Key
-;; -----------------------------------------------
-(use-package which-key
-  :demand t
-  :config
-  (which-key-mode)
-  (setq which-key-idle-delay 0.2))
-
-;; ---------------- Completion ---------------- ;;
