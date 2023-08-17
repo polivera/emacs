@@ -147,7 +147,6 @@
     ;(define-key evil-insert-state-map (kbd "TAB") 'tab-to-tab-stop)
     (evil-set-initial-state 'slime-repl-mode 'emacs))
 
-
 ;; Evil Collections
 ;; -----------------------------------------------
 (use-package evil-collection
@@ -155,8 +154,14 @@
     :config
     (evil-collection-init))
 
+(use-package evil-commentary
+  :after evil
+  :config
+  (evil-commentary-mode)) ;; globally enable evil-commentary
+
 (use-package general
   :demand t
+  :after evil
   :config
   (general-evil-setup)
   ;; integrate general with evil
@@ -168,6 +173,12 @@
     :prefix "SPC" ;; set leader
     :global-prefix "M-SPC") ;; access leader in insert mode
 )
+
+(use-package which-key
+  :demand t
+  :config
+  (which-key-mode)
+  (setq which-key-idle-delay 0.2))
 
 ;; Vertico
 ;; -----------------------------------------------
@@ -198,6 +209,11 @@
     :custom
     (completion-styles '(orderless basic))
     (completion-category-overrides '((file (styles basic partial-completion)))))
+
+(use-package consult
+  :demand t
+  :config
+  (setq consult-project-root-function #'projectile-project-root))
 
 ;; Corfu
 ;; Auto completion example
@@ -230,6 +246,35 @@
   :demand t
   :custom
   (magit-display-buffer-function 'magit-display-buffer-same-window-except-diff-v1))
+
+;; Adding treesitter github sources list
+(setq treesit-language-source-alist
+'((bash "https://github.com/tree-sitter/tree-sitter-bash")
+  (c "https://github.com/tree-sitter/tree-sitter-c")
+  (cmake "https://github.com/uyha/tree-sitter-cmake")
+  (common-lisp "https://github.com/theHamsta/tree-sitter-commonlisp")
+  (cpp "https://github.com/tree-sitter/tree-sitter-cpp")
+  (css "https://github.com/tree-sitter/tree-sitter-css")
+  (csharp "https://github.com/tree-sitter/tree-sitter-c-sharp")
+  (elisp "https://github.com/Wilfred/tree-sitter-elisp")
+  (go "https://github.com/tree-sitter/tree-sitter-go")
+  (gomod "https://github.com/camdencheek/tree-sitter-go-mod")
+  (html "https://github.com/tree-sitter/tree-sitter-html")
+  (js . ("https://github.com/tree-sitter/tree-sitter-javascript" "master" "src"))
+  (json "https://github.com/tree-sitter/tree-sitter-json")
+  (lua "https://github.com/Azganoth/tree-sitter-lua")
+  (make "https://github.com/alemuller/tree-sitter-make")
+  (markdown "https://github.com/ikatyang/tree-sitter-markdown")
+  (python "https://github.com/tree-sitter/tree-sitter-python")
+  (r "https://github.com/r-lib/tree-sitter-r")
+  (rust "https://github.com/tree-sitter/tree-sitter-rust")
+  (toml "https://github.com/tree-sitter/tree-sitter-toml")
+  (tsx . ("https://github.com/tree-sitter/tree-sitter-typescript" "master" "tsx/src"))
+  (typescript . ("https://github.com/tree-sitter/tree-sitter-typescript" "master" "typescript/src"))
+  (yaml "https://github.com/ikatyang/tree-sitter-yaml")))
+
+;; (setq treesit-load-name-override-list
+;;   '((go-mod "libtree-sitter-go-mod" "tree_sitter_gomod"))
 
 ;; LSP Configuration
 (use-package lsp-mode
@@ -273,11 +318,29 @@
       ("C-c 6" . gofmt))
 :config
 (require 'lsp-go)
+;; Set Gopls tags
+(setq lsp-go-env '((GOFLAGS . "-tags=unit")))
 (setq lsp-go-analyses
   '((field-alignment . t)
     (nillness . t)))
 ;; Gopath
 (add-to-list 'exec-path "~/.local/share/go/bin"))
+
+(elpaca-wait)
+
+;; Consult General keybindings
+(poli/leader-keys
+  "bb" '(consult-buffer :wk "consult buffer")
+  "Bb" '(consult-bookmark :wk "consult bookmark")
+  "ht" '(consult-theme :wk "consult theme")
+  "sr" '(consult-ripgrep :wk "consult rg")
+  "sg" '(consult-grep :wk "consult grep")
+  "sG" '(consult-git-grep :wk "consult git grep")
+  "sf" '(consult-find :wk "consult find")
+  "sF" '(consult-locate :wk "consult locate")
+  "sl" '(consult-line :wk "consult line")
+  "sy" '(consult-yank-from-kill-ring :wk "consult yank from kill ring")
+  "i" '(consult-imenu :wk "consult imenu"))
 
 ;; SLIME Superior Lisp Interaction Mode for Emacs.
 ;; -----------------------------------------------
@@ -286,24 +349,3 @@
   :config
   ;; Point inferior lisp program to common list implementation
   (setq inferior-lisp-program "sbcl"))
-
-
-
-
-
-
-
-
-
-
-
-
-;; Which Key
-;; -----------------------------------------------
-(use-package which-key
-  :demand t
-  :config
-  (which-key-mode)
-  (setq which-key-idle-delay 0.2))
-
-;; ---------------- Completion ---------------- ;;

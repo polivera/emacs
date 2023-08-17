@@ -1,7 +1,8 @@
 #+title: Emacs Configuration File
 #+PROPERTY: header-args:emacs-lisp :tangle ./init.el
 
-* Installing Package Manager Using [[https://github.com/progfolio/elpaca][Elpaca]] as package manager
+* Installing Package Manager
+Using [[https://github.com/progfolio/elpaca][Elpaca]] as package manager
 #+begin_src emacs-lisp
   ;; Installing ELPACA Package Manager
   (defvar elpaca-installer-version 0.5)
@@ -51,29 +52,14 @@
   ;; Block until current queue processed
   (elpaca-wait)
 #+end_src
-* ORG Mode
-** Creating ORG setup function
-This snippet create a org-setup function that will be called on org-mode start (after configuring it as a hook.
-#+begin_src emacs-lisp
-      (defun poli/org-setup()
-        ;; Should I remove variable pitch font from org mode?
-        (variable-pitch-mode 0)
-        (local-set-key (kbd "C-<space>") 'tempo-complete-tag)
-        (require 'org-tempo)
-        (add-to-list 'org-structure-template-alist '("el" . "src emacs-lisp"))
-  )
-#+end_src
-
-** Enabling org mode
-This will enable org mode, add the function previously define on the hook section and add templates
-#+begin_src emacs-lisp
-    (use-package org
-        :demand t
-        :hook (org-mode . poli/org-setup))
-#+end_src
-
 * Basic Configuration
+** Set variables
+Set some custom variables
+#+begin_src emacs-lisp
+  (defvar poli/tmp_folder (expand-file-name "tmp" user-emacs-directory))
+#+end_src
 ** Remove startup banner
+This command removes the splash screen at emacs startup.
 #+begin_src emacs-lisp
     (setq inhibit-startup-message t)    ; Remove startup message
 #+end_src
@@ -137,15 +123,37 @@ Also remove line number on certain modes
 
 ** Set backup file destination
 #+begin_src emacs-lisp
-    ;; Create a tmp folder inside emacs config so all the backup files go there
-    (setq backup-directory-alist `(("." . ,(expand-file-name "tmp/backups/" user-emacs-directory))))
+  ;; Create another tmp directory for auto-saave files
+  (make-directory poli/tmp_folder t)
 
-    ;; Create another tmp directory for auto-saave files
-    (make-directory (expand-file-name "tmp/auto-saves" user-emacs-directory) t)
+  ;; Create a tmp folder inside emacs config so all the backup files go there
+  (setq backup-directory-alist `(("." . ,(expand-file-name "tmp/backups/" user-emacs-directory))))
 
-    ;; Set auto-saves to be store in the new folder
-    (setq auto-save-list-file-prefix (expand-file-name "tmp/auto-saves/session" user-emacs-directory)
-        auto-save-file-name-transforms `((".*" ,(expand-file-name "tmp/auto-saves/" user-emacs-directory) t)))
+  ;; Set auto-saves to be store in the new folder
+  (setq auto-save-list-file-prefix (expand-file-name "tmp/auto-saves/session" user-emacs-directory)
+      auto-save-file-name-transforms `((".*" ,(expand-file-name "tmp/auto-saves/" user-emacs-directory) t)))
+
+#+end_src
+
+* ORG Mode
+** Creating ORG setup function
+This snippet create a org-setup function that will be called on org-mode start (after configuring it as a hook.
+#+begin_src emacs-lisp
+      (defun poli/org-setup()
+        ;; Should I remove variable pitch font from org mode?
+        (variable-pitch-mode 0)
+        (local-set-key (kbd "C-<space>") 'tempo-complete-tag)
+        (require 'org-tempo)
+        (add-to-list 'org-structure-template-alist '("el" . "src emacs-lisp"))
+  )
+#+end_src
+
+** Enabling org mode
+This will enable org mode, add the function previously define on the hook section and add templates
+#+begin_src emacs-lisp
+    (use-package org
+        :demand t
+        :hook (org-mode . poli/org-setup))
 #+end_src
 
 * Theme and Visuals
@@ -177,8 +185,9 @@ Also remove line number on certain modes
         (doom-modeline-mode 1))
 #+end_src
 
-* Keybinfings
+* Keybinding related config
 ** Evil Mode Configuration
+*** Base Evil Config
 #+begin_src emacs-lisp
     ;; Evil Mode
     ;; -----------------------------------------------
@@ -198,6 +207,10 @@ Also remove line number on certain modes
         (evil-set-initial-state 'slime-repl-mode 'emacs))
 
 
+#+end_src
+
+*** Evil Collection
+#+begin_src emacs-lisp
     ;; Evil Collections
     ;; -----------------------------------------------
     (use-package evil-collection
@@ -205,10 +218,19 @@ Also remove line number on certain modes
         :config
         (evil-collection-init))
 #+end_src
+
+*** Evil Comment
+#+begin_src emacs-lisp
+(use-package evil-commentary
+  :after evil
+  :config
+  (evil-commentary-mode)) ;; globally enable evil-commentary
+#+end_src
 ** General
 #+begin_src emacs-lisp
   (use-package general
     :demand t
+    :after evil
     :config
     (general-evil-setup)
     ;; integrate general with evil
@@ -221,7 +243,14 @@ Also remove line number on certain modes
       :global-prefix "M-SPC") ;; access leader in insert mode
   )
 #+end_src
-
+** Which Key
+#+begin_src emacs-lisp
+  (use-package which-key
+    :demand t
+    :config
+    (which-key-mode)
+    (setq which-key-idle-delay 0.2))
+#+end_src
 * Completion System
 ** Vertico - Vertical Interface Completion Framework
 #+begin_src emacs-lisp
@@ -260,6 +289,14 @@ Also remove line number on certain modes
         :custom
         (completion-styles '(orderless basic))
         (completion-category-overrides '((file (styles basic partial-completion)))))
+#+end_src
+
+** Consult - Search and navigation commands
+#+begin_src emacs-lisp
+  (use-package consult
+    :demand t
+    :config
+    (setq consult-project-root-function #'projectile-project-root))
 #+end_src
 
 ** Corfu - Complete In Region
@@ -304,6 +341,43 @@ Also remove line number on certain modes
 #+end_src
 
 * Software Development
+** Tree Sitter
+Not many plugins support tree-sitter yet, This is new in Emacs 29
+*** Tree Sitter sources
+Adding list of tree-sittere sources
+#+begin_src emacs-lisp
+  ;; Adding treesitter github sources list
+  (setq treesit-language-source-alist
+  '((bash "https://github.com/tree-sitter/tree-sitter-bash")
+    (c "https://github.com/tree-sitter/tree-sitter-c")
+    (cmake "https://github.com/uyha/tree-sitter-cmake")
+    (common-lisp "https://github.com/theHamsta/tree-sitter-commonlisp")
+    (cpp "https://github.com/tree-sitter/tree-sitter-cpp")
+    (css "https://github.com/tree-sitter/tree-sitter-css")
+    (csharp "https://github.com/tree-sitter/tree-sitter-c-sharp")
+    (elisp "https://github.com/Wilfred/tree-sitter-elisp")
+    (go "https://github.com/tree-sitter/tree-sitter-go")
+    (gomod "https://github.com/camdencheek/tree-sitter-go-mod")
+    (html "https://github.com/tree-sitter/tree-sitter-html")
+    (js . ("https://github.com/tree-sitter/tree-sitter-javascript" "master" "src"))
+    (json "https://github.com/tree-sitter/tree-sitter-json")
+    (lua "https://github.com/Azganoth/tree-sitter-lua")
+    (make "https://github.com/alemuller/tree-sitter-make")
+    (markdown "https://github.com/ikatyang/tree-sitter-markdown")
+    (python "https://github.com/tree-sitter/tree-sitter-python")
+    (r "https://github.com/r-lib/tree-sitter-r")
+    (rust "https://github.com/tree-sitter/tree-sitter-rust")
+    (toml "https://github.com/tree-sitter/tree-sitter-toml")
+    (tsx . ("https://github.com/tree-sitter/tree-sitter-typescript" "master" "tsx/src"))
+    (typescript . ("https://github.com/tree-sitter/tree-sitter-typescript" "master" "typescript/src"))
+    (yaml "https://github.com/ikatyang/tree-sitter-yaml")))
+#+end_src
+
+*** Tree Sitter sources translation
+#+begin_src emacs-lisp
+  ;; (setq treesit-load-name-override-list
+  ;;   '((go-mod "libtree-sitter-go-mod" "tree_sitter_gomod"))
+#+end_src
 ** LSP
 *** LSP Base Config
 #+begin_src emacs-lisp
@@ -355,9 +429,10 @@ Also remove line number on certain modes
   )
   :bind (:map go-mode-map
         ("<f6>" . gofmt)
-        ("C-c 6" . gofmt))
   :config
   (require 'lsp-go)
+  ;; Set Gopls tags
+  (setq lsp-go-env '((GOFLAGS . "-tags=unit")))
   (setq lsp-go-analyses
     '((field-alignment . t)
       (nillness . t)))
@@ -365,7 +440,28 @@ Also remove line number on certain modes
   (add-to-list 'exec-path "~/.local/share/go/bin"))
 #+end_src
 
-
+* After package configurations
+Wait for elpaca to finish processing the packages
+#+begin_src emacs-lisp
+  (elpaca-wait)
+#+end_src
+** Keymaps
+*** Consult keybindings
+#+begin_src emacs-lisp
+  ;; Consult General keybindings
+  (poli/leader-keys
+    "bb" '(consult-buffer :wk "consult buffer")
+    "Bb" '(consult-bookmark :wk "consult bookmark")
+    "ht" '(consult-theme :wk "consult theme")
+    "sr" '(consult-ripgrep :wk "consult rg")
+    "sg" '(consult-grep :wk "consult grep")
+    "sG" '(consult-git-grep :wk "consult git grep")
+    "sf" '(consult-find :wk "consult find")
+    "sF" '(consult-locate :wk "consult locate")
+    "sl" '(consult-line :wk "consult line")
+    "sy" '(consult-yank-from-kill-ring :wk "consult yank from kill ring")
+    "i" '(consult-imenu :wk "consult imenu"))
+#+end_src
 * The REST
   #+begin_src emacs-lisp
 
@@ -388,15 +484,6 @@ Also remove line number on certain modes
 
 
 
-  ;; Which Key
-  ;; -----------------------------------------------
-  (use-package which-key
-    :demand t
-    :config
-    (which-key-mode)
-    (setq which-key-idle-delay 0.2))
-
-  ;; ---------------- Completion ---------------- ;;
 
 
 

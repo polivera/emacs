@@ -1,5 +1,5 @@
-straight/
-etc/
-var/
-tmp/
-eln-cache/
+elpaca
+tmp
+eln-cache
+transient
+projectile*
