@@ -1,8 +1,31 @@
 #+title: Emacs Configuration File
 #+PROPERTY: header-args:emacs-lisp :tangle ./init.el
 
-* Installing Package Manager
-Using [[https://github.com/progfolio/elpaca][Elpaca]] as package manager
+* Emacs configuration
+Trying to learn enough to tailor emacs to my liking.
+I have a long way to go...
+
+** Pre-init config
+*** Startup performance configuration
+Reduce garbage colletor frequency and measure startup time.
+I copy this from [[https://config.daviwil.com/emacs][System Crafters]] configuration.
+#+begin_src emacs-lisp
+  ;; The default is 800 kilobytes.  Measured in bytes.
+  (setq gc-cons-threshold (* 50 1000 1000))
+
+  ;; Profile emacs startup
+  (add-hook 'emacs-startup-hook
+            (lambda ()
+              (message "*** Emacs loaded in %s with %d garbage collections."
+                       (format "%.2f seconds"
+                               (float-time
+                                (time-subtract after-init-time before-init-time)))
+                       gcs-done)))
+#+end_src
+
+** Installing Package Manager
+Using [[https://github.com/progfolio/elpaca][Elpaca]] as package manager. This package manager allow to install packages concurrently.
+
 #+begin_src emacs-lisp
   ;; Installing ELPACA Package Manager
   (defvar elpaca-installer-version 0.5)
@@ -52,20 +75,23 @@ Using [[https://github.com/progfolio/elpaca][Elpaca]] as package manager
   ;; Block until current queue processed
   (elpaca-wait)
 #+end_src
-* Basic Configuration
-** Set variables
+
+** Basic Configuration
+*** Define variables
 Set some custom variables
 #+begin_src emacs-lisp
   (defvar poli/tmp_folder (expand-file-name "tmp" user-emacs-directory))
 #+end_src
-** Remove startup banner
+
+*** Remove startup banner
 This command removes the splash screen at emacs startup.
 #+begin_src emacs-lisp
     (setq inhibit-startup-message t)    ; Remove startup message
 #+end_src
-** Mac OS specific configurations
+
+*** Mac OS specific configurations
 This will force mac to use command as meta instead of option.
-I still map right-control as `'control` because I have modify the CapsLock as control
+I still map right-control as =control= because I have modify the CapsLock as control
 #+begin_src emacs-lisp
     ;; In MacOS change option for command (to keep things the same)
     (if (eq system-type 'darwin)
@@ -75,22 +101,27 @@ I still map right-control as `'control` because I have modify the CapsLock as co
               mac-right-command-modifier 'super
               mac-right-control-modifier 'control))
 #+end_src
-** Set visible bell instead of sound
-Except in macos because its anoying
+
+*** Making some ui configuration
 #+begin_src emacs-lisp
-    (if (not (eq system-type 'darwin))
-        (setq visible-bell t))               
+  ; Remove startup message
+  (setq inhibit-startup-message t)
+
+  ; Disable sound bell (except on mac, visual is horrible)
+  (if (not (eq system-type 'darwin))
+    (setq visible-bell t))               
+
+
+  (scroll-bar-mode -1)                ; Disable scrollbar
+  (tool-bar-mode -1)                  ; Disable toolbar
+  (tooltip-mode -1)                   ; Disable tooltip
+  (menu-bar-mode -1)                  ; Disable menubar
+  (set-fringe-mode '(10 . 10))        ; Set left and right margin in pixels
+
 #+end_src
-** Turn off some UI elements
-#+begin_src emacs-lisp
-    (scroll-bar-mode -1)                ; Disable scrollbar
-    (tool-bar-mode -1)                  ; Disable toolbar
-    (tooltip-mode -1)                   ; Disable tooltip
-    (menu-bar-mode -1)                  ; Disable menubar
-    (set-fringe-mode '(10 . 10))        ; Set left and right margin in pixels
-#+end_src
-** Enable line number and make it relative
-Also remove line number on certain modes
+
+*** Line number configuration
+Enable line number and make it relative (as I use it in neovim). Also disable line number in some specific modes
 #+begin_src emacs-lisp
     ;; Enable line numbers
     (column-number-mode)
@@ -99,20 +130,21 @@ Also remove line number on certain modes
 
     ;; Disable line numners for some modes
     (dolist (mode '(
-                    ;;org-mode-hook
                     term-mode-hook
                     dired-mode-hook
                     shell-mode-hook
                     treemacs-mode-hook))
             (add-hook mode (lambda () (display-line-numbers-mode 0))))
 #+end_src
-** Tab width and indent configuration
+
+*** Tab width and indent configuration
 #+begin_src emacs-lisp
     ;; Tab configuration
     (setq-default tab-width 4)
     (setq-default indent-tabs-mode nil)
 #+end_src
-** Turn on savehist
+
+*** Turn on savehist
 #+begin_src emacs-lisp
   ;; (savehist-mode 1)
   (use-package savehist
@@ -121,22 +153,22 @@ Also remove line number on certain modes
     (savehist-mode))
 #+end_src
 
-** Set backup file destination
+*** Set backup file destination
 #+begin_src emacs-lisp
   ;; Create another tmp directory for auto-saave files
   (make-directory poli/tmp_folder t)
 
   ;; Create a tmp folder inside emacs config so all the backup files go there
-  (setq backup-directory-alist `(("." . ,(expand-file-name "tmp/backups/" user-emacs-directory))))
+  (setq backup-directory-alist `(("." . ,(expand-file-name "backups/" poli/tmp_folder))))
 
   ;; Set auto-saves to be store in the new folder
-  (setq auto-save-list-file-prefix (expand-file-name "tmp/auto-saves/session" user-emacs-directory)
-      auto-save-file-name-transforms `((".*" ,(expand-file-name "tmp/auto-saves/" user-emacs-directory) t)))
+  (setq auto-save-list-file-prefix (expand-file-name "auto-saves/session" poli/tmp_folder)
+      auto-save-file-name-transforms `((".*" ,(expand-file-name "auto-saves/" poli/tmp_folder) t)))
 
 #+end_src
 
-* ORG Mode
-** Creating ORG setup function
+** ORG Mode
+*** Creating ORG setup function
 This snippet create a org-setup function that will be called on org-mode start (after configuring it as a hook.
 #+begin_src emacs-lisp
       (defun poli/org-setup()
@@ -148,7 +180,7 @@ This snippet create a org-setup function that will be called on org-mode start (
   )
 #+end_src
 
-** Enabling org mode
+*** Enabling org mode
 This will enable org mode, add the function previously define on the hook section and add templates
 #+begin_src emacs-lisp
     (use-package org
@@ -156,38 +188,47 @@ This will enable org mode, add the function previously define on the hook sectio
         :hook (org-mode . poli/org-setup))
 #+end_src
 
-* Theme and Visuals
-** Font configuration
+** Theme and Visuals
+*** Font configuration
+Set different fonts for macos and for other systems
 #+begin_src emacs-lisp
-    ;; Load fonts
-    ;; -----------------------------------------------
-    (set-face-attribute 'default nil :font "JetBrainsMono Nerd Font" :height 105)
-    (set-face-attribute 'fixed-pitch nil :font "JetBrainsMono Nerd Font" :height 105)
+  ; Load fonts
+  (cond
+    ((eq system-type 'darwin) ;; MacOS
+      (set-face-attribute 'default nil :font "JetBrainsMono Nerd Font" :height 125)
+      (set-face-attribute 'fixed-pitch nil :font "JetBrainsMono Nerd Font" :height 125))
+    (t ;; Other OS (I use linux btw)
+      (set-face-attribute 'default nil :font "JetBrainsMono Nerd Font" :height 105)
+      (set-face-attribute 'fixed-pitch nil :font "JetBrainsMono Nerd Font" :height 105)))
+
 #+end_src
 
-** Color Scheme
+*** Color Scheme
+Use two groups of themes; [[https://protesilaos.com/emacs/ef-themes-pictures][ef themes]]  and [[https://github.com/doomemacs/themes/blob/screenshots][doom themes]]
 #+begin_src emacs-lisp
-    ;; EF Themes
-    ;; -----------------------------------------------
-    (use-package ef-themes
-        :demand t
-        :config
-        (load-theme 'ef-maris-dark t))
+  ;; EF Themes
+  (use-package ef-themes
+    :demand t)
+
+  ;; Doom themes
+  (use-package doom-themes
+    :demand t
+    :config
+    (load-theme 'doom-palenight))
 #+end_src
 
-** Modeline
+*** Modeline
 #+begin_src emacs-lisp
     ;; Doom Modeline
-    ;; -----------------------------------------------
     (use-package doom-modeline
         :demand t
         :config
         (doom-modeline-mode 1))
 #+end_src
 
-* Keybinding related config
-** Evil Mode Configuration
-*** Base Evil Config
+** Keybinding related config
+*** Evil Mode Configuration
+**** Base Evil Config
 #+begin_src emacs-lisp
     ;; Evil Mode
     ;; -----------------------------------------------
@@ -209,7 +250,7 @@ This will enable org mode, add the function previously define on the hook sectio
 
 #+end_src
 
-*** Evil Collection
+**** Evil Collection
 #+begin_src emacs-lisp
     ;; Evil Collections
     ;; -----------------------------------------------
@@ -219,14 +260,14 @@ This will enable org mode, add the function previously define on the hook sectio
         (evil-collection-init))
 #+end_src
 
-*** Evil Comment
+**** Evil Comment
 #+begin_src emacs-lisp
 (use-package evil-commentary
   :after evil
   :config
   (evil-commentary-mode)) ;; globally enable evil-commentary
 #+end_src
-** General
+*** General
 #+begin_src emacs-lisp
   (use-package general
     :demand t
@@ -243,7 +284,7 @@ This will enable org mode, add the function previously define on the hook sectio
       :global-prefix "M-SPC") ;; access leader in insert mode
   )
 #+end_src
-** Which Key
+*** Which Key
 #+begin_src emacs-lisp
   (use-package which-key
     :demand t
@@ -251,8 +292,8 @@ This will enable org mode, add the function previously define on the hook sectio
     (which-key-mode)
     (setq which-key-idle-delay 0.2))
 #+end_src
-* Completion System
-** Vertico - Vertical Interface Completion Framework
+** Completion System
+*** Vertico - Vertical Interface Completion Framework
 #+begin_src emacs-lisp
   ;; Vertico
   ;; -----------------------------------------------
@@ -267,7 +308,7 @@ This will enable org mode, add the function previously define on the hook sectio
       (vertico-mode 1))
 #+end_src
 
-** Marginalia - Margin Help Details
+*** Marginalia - Margin Help Details
 #+begin_src emacs-lisp
     ;; Marginalia
     ;; Nice description on the completion framework
@@ -279,7 +320,7 @@ This will enable org mode, add the function previously define on the hook sectio
         (marginalia-mode 1))
 #+end_src
 
-** Orderless - Better list sorting
+*** Orderless - Better list sorting
 #+begin_src emacs-lisp
     ;; Orderless
     ;; Better matching for vertico
@@ -291,7 +332,7 @@ This will enable org mode, add the function previously define on the hook sectio
         (completion-category-overrides '((file (styles basic partial-completion)))))
 #+end_src
 
-** Consult - Search and navigation commands
+*** Consult - Search and navigation commands
 #+begin_src emacs-lisp
   (use-package consult
     :demand t
@@ -299,7 +340,7 @@ This will enable org mode, add the function previously define on the hook sectio
     (setq consult-project-root-function #'projectile-project-root))
 #+end_src
 
-** Corfu - Complete In Region
+*** Corfu - Complete In Region
 #+begin_src emacs-lisp
   ;; Corfu
   ;; Auto completion example
@@ -316,8 +357,8 @@ This will enable org mode, add the function previously define on the hook sectio
     (global-corfu-mode))
 #+end_src
 
-* Project Management
-** Projectile
+** Project Management
+*** Projectile
 #+begin_src emacs-lisp
     ;; Projectile
     (use-package projectile
@@ -331,7 +372,7 @@ This will enable org mode, add the function previously define on the hook sectio
         ;; This will open a new project in Dired
         (setq projectile-switch-project-action #'projectile-dired))
 #+end_src
-** Magit
+*** Magit
 #+begin_src emacs-lisp
   ;; Magit
   (use-package magit
@@ -340,10 +381,10 @@ This will enable org mode, add the function previously define on the hook sectio
     (magit-display-buffer-function 'magit-display-buffer-same-window-except-diff-v1))
 #+end_src
 
-* Software Development
-** Tree Sitter
+** Software Development
+*** Tree Sitter
 Not many plugins support tree-sitter yet, This is new in Emacs 29
-*** Tree Sitter sources
+**** Tree Sitter sources
 Adding list of tree-sittere sources
 #+begin_src emacs-lisp
   ;; Adding treesitter github sources list
@@ -373,13 +414,13 @@ Adding list of tree-sittere sources
     (yaml "https://github.com/ikatyang/tree-sitter-yaml")))
 #+end_src
 
-*** Tree Sitter sources translation
+**** Tree Sitter sources translation
 #+begin_src emacs-lisp
   ;; (setq treesit-load-name-override-list
   ;;   '((go-mod "libtree-sitter-go-mod" "tree_sitter_gomod"))
 #+end_src
-** LSP
-*** LSP Base Config
+*** LSP
+**** LSP Base Config
 #+begin_src emacs-lisp
   ;; LSP Configuration
   (use-package lsp-mode
@@ -403,7 +444,7 @@ Adding list of tree-sittere sources
     (lsp-mode . poli/lsp-setup)
     (lsp-completion-mode . poli/lsp-completion-setup))
 #+end_src
-*** LSP UI
+**** LSP UI
 #+begin_src emacs-lisp
   (use-package lsp-ui
     :demand t
@@ -411,15 +452,15 @@ Adding list of tree-sittere sources
     :commands lsp-ui-mode)
 #+end_src
 
-*** (FlyCheck) Syntax Checking
+**** (FlyCheck) Syntax Checking
 #+begin_src emacs-lisp
 (use-package flycheck
   :demand t
   :init (global-flycheck-mode))
 #+end_src
 
-*** Languages
-**** Go
+**** Languages
+***** Go
 #+begin_src emacs-lisp
   ;; Golang configuration
   (use-package go-mode
@@ -428,7 +469,7 @@ Adding list of tree-sittere sources
     (go-mode . lsp-deferred)
   )
   :bind (:map go-mode-map
-        ("<f6>" . gofmt)
+        ("<f6>" . gofmt))
   :config
   (require 'lsp-go)
   ;; Set Gopls tags
@@ -440,13 +481,13 @@ Adding list of tree-sittere sources
   (add-to-list 'exec-path "~/.local/share/go/bin"))
 #+end_src
 
-* After package configurations
+** After package configurations
 Wait for elpaca to finish processing the packages
 #+begin_src emacs-lisp
   (elpaca-wait)
 #+end_src
-** Keymaps
-*** Consult keybindings
+*** Keymaps
+**** Consult keybindings
 #+begin_src emacs-lisp
   ;; Consult General keybindings
   (poli/leader-keys
@@ -462,7 +503,7 @@ Wait for elpaca to finish processing the packages
     "sy" '(consult-yank-from-kill-ring :wk "consult yank from kill ring")
     "i" '(consult-imenu :wk "consult imenu"))
 #+end_src
-* The REST
+** The REST
   #+begin_src emacs-lisp
 
   ;; SLIME Superior Lisp Interaction Mode for Emacs.

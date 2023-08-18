@@ -1,3 +1,15 @@
+;; The default is 800 kilobytes.  Measured in bytes.
+(setq gc-cons-threshold (* 50 1000 1000))
+
+;; Profile emacs startup
+(add-hook 'emacs-startup-hook
+          (lambda ()
+            (message "*** Emacs loaded in %s with %d garbage collections."
+                     (format "%.2f seconds"
+                             (float-time
+                              (time-subtract after-init-time before-init-time)))
+                     gcs-done)))
+
 ;; Installing ELPACA Package Manager
 (defvar elpaca-installer-version 0.5)
 (defvar elpaca-directory (expand-file-name "elpaca/" user-emacs-directory))
@@ -46,17 +58,7 @@
 ;; Block until current queue processed
 (elpaca-wait)
 
-(defun poli/org-setup()
-      ;; Should I remove variable pitch font from org mode?
-      (variable-pitch-mode 0)
-      (local-set-key (kbd "C-<space>") 'tempo-complete-tag)
-      (require 'org-tempo)
-      (add-to-list 'org-structure-template-alist '("el" . "src emacs-lisp"))
-)
-
-(use-package org
-    :demand t
-    :hook (org-mode . poli/org-setup))
+(defvar poli/tmp_folder (expand-file-name "tmp" user-emacs-directory))
 
 (setq inhibit-startup-message t)    ; Remove startup message
 
@@ -68,8 +70,13 @@
           mac-right-command-modifier 'super
           mac-right-control-modifier 'control))
 
+; Remove startup message
+(setq inhibit-startup-message t)
+
+; Disable sound bell (except on mac, visual is horrible)
 (if (not (eq system-type 'darwin))
-    (setq visible-bell t))
+  (setq visible-bell t))               
+
 
 (scroll-bar-mode -1)                ; Disable scrollbar
 (tool-bar-mode -1)                  ; Disable toolbar
@@ -84,7 +91,6 @@
 
 ;; Disable line numners for some modes
 (dolist (mode '(
-                ;;org-mode-hook
                 term-mode-hook
                 dired-mode-hook
                 shell-mode-hook
@@ -101,30 +107,48 @@
   :init
   (savehist-mode))
 
-;; Create a tmp folder inside emacs config so all the backup files go there
-(setq backup-directory-alist `(("." . ,(expand-file-name "tmp/backups/" user-emacs-directory))))
-
 ;; Create another tmp directory for auto-saave files
-(make-directory (expand-file-name "tmp/auto-saves" user-emacs-directory) t)
+(make-directory poli/tmp_folder t)
+
+;; Create a tmp folder inside emacs config so all the backup files go there
+(setq backup-directory-alist `(("." . ,(expand-file-name "backups/" poli/tmp_folder))))
 
 ;; Set auto-saves to be store in the new folder
-(setq auto-save-list-file-prefix (expand-file-name "tmp/auto-saves/session" user-emacs-directory)
-    auto-save-file-name-transforms `((".*" ,(expand-file-name "tmp/auto-saves/" user-emacs-directory) t)))
+(setq auto-save-list-file-prefix (expand-file-name "auto-saves/session" poli/tmp_folder)
+    auto-save-file-name-transforms `((".*" ,(expand-file-name "auto-saves/" poli/tmp_folder) t)))
 
-;; Load fonts
-;; -----------------------------------------------
-(set-face-attribute 'default nil :font "JetBrainsMono Nerd Font" :height 105)
-(set-face-attribute 'fixed-pitch nil :font "JetBrainsMono Nerd Font" :height 105)
+(defun poli/org-setup()
+      ;; Should I remove variable pitch font from org mode?
+      (variable-pitch-mode 0)
+      (local-set-key (kbd "C-<space>") 'tempo-complete-tag)
+      (require 'org-tempo)
+      (add-to-list 'org-structure-template-alist '("el" . "src emacs-lisp"))
+)
+
+(use-package org
+    :demand t
+    :hook (org-mode . poli/org-setup))
+
+; Load fonts
+(cond
+  ((eq system-type 'darwin) ;; MacOS
+    (set-face-attribute 'default nil :font "JetBrainsMono Nerd Font" :height 125)
+    (set-face-attribute 'fixed-pitch nil :font "JetBrainsMono Nerd Font" :height 125))
+  (t ;; Other OS (I use linux btw)
+    (set-face-attribute 'default nil :font "JetBrainsMono Nerd Font" :height 105)
+    (set-face-attribute 'fixed-pitch nil :font "JetBrainsMono Nerd Font" :height 105)))
 
 ;; EF Themes
-;; -----------------------------------------------
 (use-package ef-themes
-    :demand t
-    :config
-    (load-theme 'ef-maris-dark t))
+  :demand t)
+
+;; Doom themes
+(use-package doom-themes
+  :demand t
+  :config
+  (load-theme 'doom-palenight))
 
 ;; Doom Modeline
-;; -----------------------------------------------
 (use-package doom-modeline
     :demand t
     :config
@@ -314,8 +338,7 @@
   (go-mode . lsp-deferred)
 )
 :bind (:map go-mode-map
-      ("<f6>" . gofmt)
-      ("C-c 6" . gofmt))
+      ("<f6>" . gofmt))
 :config
 (require 'lsp-go)
 ;; Set Gopls tags
