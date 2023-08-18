@@ -77,7 +77,6 @@
 (if (not (eq system-type 'darwin))
   (setq visible-bell t))               
 
-
 (scroll-bar-mode -1)                ; Disable scrollbar
 (tool-bar-mode -1)                  ; Disable toolbar
 (tooltip-mode -1)                   ; Disable tooltip
@@ -107,36 +106,26 @@
   :init
   (savehist-mode))
 
-;; Create another tmp directory for auto-saave files
+; Create another tmp directory for auto-saave files
 (make-directory poli/tmp_folder t)
 
-;; Create a tmp folder inside emacs config so all the backup files go there
+; Create a tmp folder inside emacs config so all the backup files go there
 (setq backup-directory-alist `(("." . ,(expand-file-name "backups/" poli/tmp_folder))))
 
-;; Set auto-saves to be store in the new folder
+; Set auto-saves to be store in the new folder
 (setq auto-save-list-file-prefix (expand-file-name "auto-saves/session" poli/tmp_folder)
     auto-save-file-name-transforms `((".*" ,(expand-file-name "auto-saves/" poli/tmp_folder) t)))
 
-(defun poli/org-setup()
-      ;; Should I remove variable pitch font from org mode?
-      (variable-pitch-mode 0)
-      (local-set-key (kbd "C-<space>") 'tempo-complete-tag)
-      (require 'org-tempo)
-      (add-to-list 'org-structure-template-alist '("el" . "src emacs-lisp"))
-)
-
-(use-package org
-    :demand t
-    :hook (org-mode . poli/org-setup))
-
-; Load fonts
+; Load fonts depending on the OS
 (cond
   ((eq system-type 'darwin) ;; MacOS
-    (set-face-attribute 'default nil :font "JetBrainsMono Nerd Font" :height 125)
-    (set-face-attribute 'fixed-pitch nil :font "JetBrainsMono Nerd Font" :height 125))
+    (set-face-attribute 'default nil :font "Iosevka Term" :height 145)
+    (set-face-attribute 'fixed-pitch nil :font "Iosevka Term" :height 145)
+    (set-face-attribute 'variable-pitch nil :font "Iosevka Aile" :height 145))
   (t ;; Other OS (I use linux btw)
-    (set-face-attribute 'default nil :font "JetBrainsMono Nerd Font" :height 105)
-    (set-face-attribute 'fixed-pitch nil :font "JetBrainsMono Nerd Font" :height 105)))
+    (set-face-attribute 'default nil :font "Iosevka Term" :height 110)
+    (set-face-attribute 'fixed-pitch nil :font "Iosevka Term" :height 120)
+    (set-face-attribute 'variable-pitch nil :font "Iosevka Aile" :height 140)))
 
 ;; EF Themes
 (use-package ef-themes
@@ -146,30 +135,30 @@
 (use-package doom-themes
   :demand t
   :config
-  (load-theme 'doom-palenight))
+  (load-theme 'doom-palenight t))
 
-;; Doom Modeline
+; Doom Modeline
 (use-package doom-modeline
-    :demand t
-    :config
-    (doom-modeline-mode 1))
+ :demand t
+ :config
+ (defvar doom-modeline-height 40)
+ (doom-modeline-mode 1))
 
-;; Evil Mode
-;; -----------------------------------------------
+; Evil Mode
 (use-package evil
-    :demand t
-    :init
-    (setq evil-want-keybinding nil)
-    (setq evil-want-C-u-scroll t)
-    :config
-    ;; Evil Startup
-    (evil-mode)
-    ;; Evil config
-    (evil-set-undo-system 'undo-redo)
-    ;; Evil keybindings
-    (define-key evil-insert-state-map (kbd "C-g") 'evil-normal-state)
-    ;(define-key evil-insert-state-map (kbd "TAB") 'tab-to-tab-stop)
-    (evil-set-initial-state 'slime-repl-mode 'emacs))
+  :demand t
+  :init
+  (setq evil-want-keybinding nil)
+  (setq evil-want-C-u-scroll t)
+  :config
+  ;; Evil Startup
+  (evil-mode)
+  ;; Evil config
+  (evil-set-undo-system 'undo-redo)
+  ;; Evil keybindings
+  (define-key evil-insert-state-map (kbd "C-g") 'evil-normal-state)
+  ;(define-key evil-insert-state-map (kbd "TAB") 'tab-to-tab-stop)
+  (evil-set-initial-state 'slime-repl-mode 'emacs))
 
 ;; Evil Collections
 ;; -----------------------------------------------
@@ -182,6 +171,13 @@
   :after evil
   :config
   (evil-commentary-mode)) ;; globally enable evil-commentary
+
+(use-package evil-surround
+  :ensure t
+  :config
+  (global-evil-surround-mode 1)
+  (add-hook 'emacs-lisp-mode-hook (lambda ()
+                                (push '(?` . ("`" . "'")) evil-surround-pairs-alist))))
 
 (use-package general
   :demand t
@@ -204,17 +200,15 @@
   (which-key-mode)
   (setq which-key-idle-delay 0.2))
 
-;; Vertico
-;; -----------------------------------------------
-;; VERTical Iteractive Completion Framework
+; VERTical Iteractive Completion Framework
 (use-package vertico
-    :demand t
-    :bind (:map vertico-map
-            ("C-j" . vertico-next)
-            ("C-k" . vertico-previous)
-            ("C-q" . vertico-exit))
-    :config
-    (vertico-mode 1))
+  :demand t
+  :bind (:map vertico-map
+          ("C-j" . vertico-next)
+          ("C-k" . vertico-previous)
+          ("C-q" . vertico-exit))
+  :config
+  (vertico-mode 1))
 
 ;; Marginalia
 ;; Nice description on the completion framework
@@ -253,6 +247,45 @@
   :init
   (global-corfu-mode))
 
+(defun poli/org-setup()
+  ;; Should I remove variable pitch font from org mode?
+  (org-indent-mode)
+  (variable-pitch-mode 1)
+  (visual-line-mode 1)
+
+  (local-set-key (kbd "C-<space>") 'tempo-complete-tag)
+  (require 'org-tempo)
+
+  ; Create a list of templates
+  (add-to-list 'org-structure-template-alist '("el" . "src emacs-lisp"))
+
+  ; Ensure that anything that should be fixed-pitch in Org files appears that way
+  (set-face-attribute 'org-block nil :foreground nil :inherit 'fixed-pitch)
+  (set-face-attribute 'org-code nil   :inherit '(shadow fixed-pitch))
+  (set-face-attribute 'org-indent nil :inherit '(org-hide fixed-pitch))
+  (set-face-attribute 'org-verbatim nil :inherit '(shadow fixed-pitch))
+  (set-face-attribute 'org-special-keyword nil :inherit '(font-lock-comment-face fixed-pitch))
+  (set-face-attribute 'org-meta-line nil :inherit '(font-lock-comment-face fixed-pitch))
+  (set-face-attribute 'org-checkbox nil :inherit 'fixed-pitch)
+  (set-face-attribute 'line-number nil :inherit 'fixed-pitch)
+  (set-face-attribute 'line-number-current-line nil :inherit 'fixed-pitch)
+
+  ; Set faces for heading levels
+  (dolist (face '((org-level-1 . 1.2)
+                  (org-level-2 . 1.2)
+                  (org-level-3 . 1.15)
+                  (org-level-4 . 1.15)
+                  (org-level-5 . 1.125)
+                  (org-level-6 . 1.125)
+                  (org-level-7 . 1.1)
+                  (org-level-8 . 1.1)))
+    (set-face-attribute (car face) nil :font "Iosevka Aile" :weight 'regular :height (cdr face)))
+)
+
+(use-package org
+    :demand t
+    :hook (org-mode . poli/org-setup))
+
 ;; Projectile
 (use-package projectile
     :demand t
@@ -270,6 +303,12 @@
   :demand t
   :custom
   (magit-display-buffer-function 'magit-display-buffer-same-window-except-diff-v1))
+
+; Rainbow delimiter
+(use-package rainbow-delimiters
+  :demand t
+  :config
+  (add-hook 'prog-mode-hook #'rainbow-delimiters-mode))
 
 ;; Adding treesitter github sources list
 (setq treesit-language-source-alist
@@ -342,7 +381,7 @@
 :config
 (require 'lsp-go)
 ;; Set Gopls tags
-(setq lsp-go-env '((GOFLAGS . "-tags=unit")))
+(setq lsp-go-env '((GOFLAGS . "-tags=unit,integration")))
 (setq lsp-go-analyses
   '((field-alignment . t)
     (nillness . t)))
